@@ -138,18 +138,9 @@ clean_memory: block
          call cheb_filter(lin_m(i),psi4_lin_q)
          call cheb_filter(lin_m(i),psi4_lin_f)
          !------------------------------------
-         call swal_filter(lin_m(i),psi4_lin_p)
-         call swal_filter(lin_m(i),psi4_lin_q)
-         call swal_filter(lin_m(i),psi4_lin_f)
-         !------------------------------------
-         !------------------------------------
          call cheb_filter(-lin_m(i),psi4_lin_p)
          call cheb_filter(-lin_m(i),psi4_lin_q)
          call cheb_filter(-lin_m(i),psi4_lin_f)
-         !------------------------------------
-         call swal_filter(-lin_m(i),psi4_lin_p)
-         call swal_filter(-lin_m(i),psi4_lin_q)
-         call swal_filter(-lin_m(i),psi4_lin_f)
       !-----------------------------------------------------------------------
       ! metric recon evolves +/- m_ang so only evolve m_ang>=0
       !-----------------------------------------------------------------------
@@ -168,27 +159,6 @@ clean_memory: block
             call cheb_filter(lin_m(i),hmbmb)
             call cheb_filter(lin_m(i), hlmb)
             call cheb_filter(lin_m(i),muhll)
-            !------------------------------------
-            call swal_filter(lin_m(i),psi3)
-            call swal_filter(lin_m(i),psi2)
-
-            call swal_filter(lin_m(i),la)
-            call swal_filter(lin_m(i),pi)
-
-            call swal_filter(lin_m(i),hmbmb)
-            call swal_filter(lin_m(i), hlmb)
-            call swal_filter(lin_m(i),muhll)
-            !------------------------------------
-            !------------------------------------
-            call cheb_filter(-lin_m(i),psi3)
-            call cheb_filter(-lin_m(i),psi2)
-
-            call cheb_filter(-lin_m(i),la)
-            call cheb_filter(-lin_m(i),pi)
-
-            call cheb_filter(-lin_m(i),hmbmb)
-            call cheb_filter(-lin_m(i), hlmb)
-            call cheb_filter(-lin_m(i),muhll)
             !------------------------------------
             call swal_filter(-lin_m(i),psi3)
             call swal_filter(-lin_m(i),psi2)
@@ -223,9 +193,9 @@ clean_memory: block
                call cheb_filter(scd_m(i),psi4_scd_q)
                call cheb_filter(scd_m(i),psi4_scd_f)
                !------------------------------------
-               call swal_filter(scd_m(i),psi4_scd_p)
-               call swal_filter(scd_m(i),psi4_scd_q)
-               call swal_filter(scd_m(i),psi4_scd_f)
+               call swal_filter(-scd_m(i),psi4_scd_p)
+               call swal_filter(-scd_m(i),psi4_scd_q)
+               call swal_filter(-scd_m(i),psi4_scd_f)
 
             end do
          end if
