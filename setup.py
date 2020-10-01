@@ -104,7 +104,6 @@ sim.rl_pm2_0= float(-1.5)
 sim.ru_pm2_0= float( 1.5) 
 #-----------------------------------------------------------------------------
 sim.l_ang_nm2= int(3)
-sim.l_ang_nm2= int(3)
 
 sim.initial_data_direction_nm2= "ingoing"#"time_symmetric"#"outgoing"#
 
