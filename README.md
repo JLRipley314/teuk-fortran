@@ -23,7 +23,7 @@ Runtime parameters are configured in the `setup.py` file.
 * Fastest Fourier Transform in the West (FFTW): 
 	http://fftw.org
 
-* OpenMP (this is optional, and can be deactivated in the Makefile): 
+* OpenMP (this is optional): 
 	https://www.openmp.org/
 
 I have successfully compiled the code with
@@ -43,11 +43,11 @@ to visualize the data, which are saved as csv files.
 
 ## Citation
 
-If you use this code, please cite:
-...
-
-Also consider citing:
-...
+If you use this code please cite
+our [paper](https://inspirehep.net/literature/1820630)
+which describes and uses this code. Also consider citing our 
+[paper](https://inspirehep.net/literature/1813628)
+which describes our formalism in more detail.
 
 ## Contact
 
