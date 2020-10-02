@@ -128,7 +128,7 @@ clean_memory: block
       ! \Psi_4^{(1)} evolution 
       !-----------------------------------------------------------------------
       !$OMP PARALLEL DO NUM_THREADS(len_lin_pos_m) IF(len_lin_pos_m>1)
-      do i=1,len_lin_pos_m
+      pos_m_loop: do i=1,len_lin_pos_m
          call teuk_time_step( lin_m(i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
          call teuk_time_step(-lin_m(i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
          !------------------------------------
@@ -171,7 +171,7 @@ clean_memory: block
             call swal_filter(-lin_m(i),muhll)
 
          end if
-      end do
+      end do pos_m_loop
       !$OMP END PARALLEL DO
       !-----------------------------------------------------------------------
       ! \Psi_4^{(2)} evolution 
@@ -192,10 +192,6 @@ clean_memory: block
                call cheb_filter(scd_m(i),psi4_scd_p)
                call cheb_filter(scd_m(i),psi4_scd_q)
                call cheb_filter(scd_m(i),psi4_scd_f)
-               !------------------------------------
-               call swal_filter(-scd_m(i),psi4_scd_p)
-               call swal_filter(-scd_m(i),psi4_scd_q)
-               call swal_filter(-scd_m(i),psi4_scd_f)
 
             end do
          end if
