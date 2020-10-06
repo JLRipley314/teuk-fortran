@@ -16,8 +16,8 @@ sim.black_hole_mass= float(0.5)
 sim.black_hole_spin= round(0.998*sim.black_hole_mass,6)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(150) ## units of black hole mass
-sim.num_saved_times= int(500)
+sim.evolve_time= float(0.2) ## units of black hole mass
+sim.num_saved_times= int(2)
 #=============================================================================
 sim.nx= 192 ## num radial pts 
 sim.nl= 36  ## num angular values
@@ -33,7 +33,7 @@ sim.write_metric_recon_fields= False
 sim.write_scd_order_source=    True
 sim.write_coefs=               False
 #=============================================================================
-sim.computer= 'della'#'home'#
+sim.computer= 'home'#'della'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
