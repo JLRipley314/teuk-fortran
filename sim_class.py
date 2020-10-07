@@ -174,15 +174,17 @@ class Sim:
          f.write('#SBATCH -J fteuk\t\t# job name\n')
          f.write('#SBATCH -t {}\t\t# walltime (dd:hh:mm:ss)\n'.format(self.walltime))
          f.write('#SBATCH -p physics\t\t# partition/queue name\n')
-         f.write('#SBATCH --mem={}MB\n'.format(self.memory))
          f.write('#SBATCH --output={}\t\t# file for STDOUT\n'.format(self.output_file))
          f.write('#SBATCH --mail-user={}\t\t# Mail  id of the user\n'.format(self.email))
+         f.write('#SBATCH --mem-per-cpu={}MB\n'.format(self.memory))
          #------------
          ## for openmp
          #------------
          f.write('#SBATCH --nodes=1\n')
          f.write('#SBATCH --ntasks-per-node=1\n')
          f.write('#SBATCH --cpus-per-task={}\n'.format(self.num_threads))
+
+         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n'.format(self.num_threads))
          #------------
          ## executable
          #------------

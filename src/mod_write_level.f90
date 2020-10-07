@@ -50,58 +50,40 @@ contains
 !=============================================================================
    subroutine write_diagnostics(time)
       real(rp), intent(in) :: time
-      real(rp), dimension(12) :: diag 
 
       complex(rp) :: mean
-      integer(ip) :: m_ang 
+      integer(ip) :: i 
+
+      write(stdout,'(e14.6)',advance='no') time
       !-----------------------------------------------------------------------
       ! field values at future null infinity and horizon
       !-----------------------------------------------------------------------
-      m_ang = maxval(lin_write_m)
+      do i=1,len_lin_write_m
 
-      mean = sum(psi4_lin_f%np1(1,:,m_ang)) / ny
-      diag(1) = real( mean,kind=rp)
-      diag(2) = aimag(mean)
+         mean = sum(psi4_lin_f%np1(1 ,:,lin_write_m(i))) / ny
+         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
+         write(stdout,'(e14.6)',advance='no') aimag(mean)
 
-      mean = sum(psi4_lin_f%np1(nx,:,m_ang)) / ny
-      diag(3) = real( mean,kind=rp)
-      diag(4) = aimag(mean)
+         mean = sum(psi4_lin_f%np1(nx,:,lin_write_m(i))) / ny
+         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
+         write(stdout,'(e14.6)',advance='no') aimag(mean)
+      end do
+
+      do i=1,len_scd_write_m
+
+         mean = sum(psi4_scd_f%np1(1 ,:,scd_write_m(i))) / ny
+         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
+         write(stdout,'(e14.6)',advance='no') aimag(mean)
+
+         mean = sum(psi4_scd_f%np1(nx,:,scd_write_m(i))) / ny
+         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
+         write(stdout,'(e14.6)',advance='no') aimag(mean)
+      end do
       !-----------------------------------------------------------------------
-      m_ang = maxval(scd_write_m)
-
-      mean = sum(psi4_scd_f%np1(1,:,m_ang)) / ny
-      diag(5) = real( mean,kind=rp)
-      diag(6) = aimag(mean)
-
-      mean = sum(psi4_scd_f%np1(nx,:,m_ang)) / ny
-      diag(7) = real( mean,kind=rp)
-      diag(8) = aimag(mean)
-      !-----------------------------------------------------------------------
-      m_ang = 0 
-
-      mean = sum(psi4_scd_f%np1(1,:,0)) / ny
-      diag(9)  = real( mean,kind=rp)
-      diag(10) = aimag(mean)
-
-      mean = sum(psi4_scd_f%np1(nx,:,0)) / ny
-      diag(11) = real( mean,kind=rp)
-      diag(12) = aimag(mean)
-      !-----------------------------------------------------------------------
-      write(stdout,'(e14.6)',advance='no') time
-      write(stdout,'(e14.6)',advance='no') diag(1)
-      write(stdout,'(e14.6)',advance='no') diag(2)
-      write(stdout,'(e14.6)',advance='no') diag(3)
-      write(stdout,'(e14.6)',advance='no') diag(4)
-      write(stdout,'(e14.6)',advance='no') diag(5)
-      write(stdout,'(e14.6)',advance='no') diag(6)
-      write(stdout,'(e14.6)',advance='no') diag(7)
-      write(stdout,'(e14.6)',advance='no') diag(8)
-      write(stdout,'(e14.6)',advance='no') diag(9)
-      write(stdout,'(e14.6)',advance='no') diag(10)
-      write(stdout,'(e14.6)',advance='no') diag(11)
-      write(stdout,'(e14.6)',advance='no') diag(12)
       ! line break
+      !-----------------------------------------------------------------------
       write(stdout,*)
+
    end subroutine write_diagnostics
 !=============================================================================
    subroutine write_level(time)
