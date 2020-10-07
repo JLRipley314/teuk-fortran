@@ -46,7 +46,7 @@ module mod_field
       coefs_swal, coefs_both
 
    real(rp), dimension(nx,ny,min_m:max_m) :: &
-      re, im
+      re, im, coefs_cheb_re, coefs_cheb_im
 
    end type field
 !=============================================================================
@@ -95,6 +95,8 @@ contains
 
       f % re = 0.0_rp
       f % im = 0.0_rp
+      f % coefs_cheb_re = 0.0_rp
+      f % coefs_cheb_im = 0.0_rp
 
    end subroutine set_field
 !=============================================================================

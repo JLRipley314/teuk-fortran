@@ -15,19 +15,19 @@ module mod_cheb
 !=============================================================================
    private
 
-   real(rp), parameter :: dx_over_dR = 2.0_rp / R_max
+   real(rp) :: dx_over_dR
 
-   integer(ip), parameter :: N = nx - 1
+   integer(ip) :: N
 
    ! fftw3 objects
    type(c_ptr) :: plan_dct
 
    ! radial points
-   real(rp), dimension(nx),    protected, public :: Rvec
-   real(rp), dimension(nx,ny), protected, public :: Rarr
+   real(rp), allocatable, protected, public :: Rvec(:)
+   real(rp), allocatable, protected, public :: Rarr(:,:)
 
    ! filter array
-   real(rp), dimension(nx) :: filter_arr
+   real(rp), allocatable :: filter_arr(:,:)
 
    ! subroutines
    public :: cheb_init, compute_DR, cheb_filter, cheb_test
@@ -42,7 +42,14 @@ contains
 !=============================================================================
    subroutine cheb_init()
       integer :: j
-      complex(rp), dimension(nx) :: test_in, test_out
+      complex(rp), allocatable :: test_in(:), test_out(:) 
+
+      dx_over_dR = 2.0_rp / R_max
+      N = nx - 1
+
+      allocate(Rvec(nx))
+      allocate(Rarr(nx,ny))
+      allocate(filter_arr(nx,ny))
 
       call set_arr('cheb_pts.txt', nx, Rvec)
 
@@ -53,6 +60,9 @@ contains
       end do
 
       ! setup dct fftw plan
+      allocate(test_in( nx))
+      allocate(test_out(nx))
+
       call dfftw_plan_r2r_1d( &
          plan_dct, &
          nx, &
@@ -60,76 +70,77 @@ contains
          FFTW_REDFT00,FFTW_PATIENT)
       
       do j=1,nx
-         filter_arr(j) = exp(-40.0_rp*(real(j-1,rp)/real(nx-1,rp))**16)
+         filter_arr(j,:) = exp(-40.0_rp*(real(j-1,rp)/real(nx-1,rp))**16)
       end do
 
    end subroutine cheb_init
 !=============================================================================
-   subroutine cheb_real_to_coef(m_ang,vals,coefs)
+   subroutine cheb_real_to_coef(m_ang,vals,coefs,re_v,im_v,re_c,im_c)
       integer(ip), intent(in) :: m_ang
       complex(rp), dimension(nx,ny,min_m:max_m), intent(in)  :: vals
       complex(rp), dimension(nx,ny,min_m:max_m), intent(out) :: coefs
+      real(rp),    dimension(nx,ny,min_m:max_m), intent(inout) :: re_v, im_v, re_c, im_c
 
       integer(ip) :: i,j 
-      real(rp), dimension(nx) :: re_v, im_v, re_c, im_c 
 
       do j=1,ny
-         re_v = real( vals(:,j,m_ang),kind=rp)
-         im_v = aimag(vals(:,j,m_ang))
+         re_v(:,j,m_ang) = real( vals(:,j,m_ang),kind=rp)
+         im_v(:,j,m_ang) = aimag(vals(:,j,m_ang))
 
-         call dfftw_execute_r2r(plan_dct,re_v,re_c)
-         call dfftw_execute_r2r(plan_dct,im_v,im_c)
+         call dfftw_execute_r2r(plan_dct,re_v(:,j,m_ang),re_c(:,j,m_ang))
+         call dfftw_execute_r2r(plan_dct,im_v(:,j,m_ang),im_c(:,j,m_ang))
 
-         re_c(1) = re_c(1)/(2.0_rp*N)
-         im_c(1) = im_c(1)/(2.0_rp*N)
+         re_c(1,j,m_ang) = re_c(1,j,m_ang)/(2.0_rp*N)
+         im_c(1,j,m_ang) = im_c(1,j,m_ang)/(2.0_rp*N)
          
-         re_c(nx) = re_c(nx)/(2.0_rp*N)
-         im_c(nx) = im_c(nx)/(2.0_rp*N)
+         re_c(nx,j,m_ang) = re_c(nx,j,m_ang)/(2.0_rp*N)
+         im_c(nx,j,m_ang) = im_c(nx,j,m_ang)/(2.0_rp*N)
 
          do i=2,N
-            re_c(i) = re_c(i)/N
-            im_c(i) = im_c(i)/N
+            re_c(i,j,m_ang) = re_c(i,j,m_ang)/N
+            im_c(i,j,m_ang) = im_c(i,j,m_ang)/N
          end do
 
-         coefs(:,j,m_ang) = cmplx(re_c,im_c,kind=rp)
+         coefs(:,j,m_ang) = cmplx(re_c(:,j,m_ang),im_c(:,j,m_ang),kind=rp)
       end do
 
    end subroutine cheb_real_to_coef
 !=============================================================================
-   subroutine cheb_coef_to_real(m_ang,coefs,vals)
+   subroutine cheb_coef_to_real(m_ang,coefs,vals,re_v,im_v,re_c,im_c)
       integer(ip), intent(in) :: m_ang
       complex(rp), dimension(nx,ny,min_m:max_m), intent(in)  :: coefs
       complex(rp), dimension(nx,ny,min_m:max_m), intent(out) :: vals
+      real(rp),    dimension(nx,ny,min_m:max_m), intent(inout) :: re_v, im_v, re_c, im_c
 
       integer(ip) :: i, j 
-      real(rp), dimension(nx) :: re_v, im_v, re_c, im_c
 
       do j=1,ny
-         re_c = real( coefs(:,j,m_ang),kind=rp)
-         im_c = aimag(coefs(:,j,m_ang))
+         re_c(:,j,m_ang) = real( coefs(:,j,m_ang),kind=rp)
+         im_c(:,j,m_ang) = aimag(coefs(:,j,m_ang))
 
          do i=2,N
-            re_c(i) = re_c(i) / 2.0_rp
-            im_c(i) = im_c(i) / 2.0_rp
+            re_c(i,j,m_ang) = re_c(i,j,m_ang) / 2.0_rp
+            im_c(i,j,m_ang) = im_c(i,j,m_ang) / 2.0_rp
          end do
 
-         call dfftw_execute_r2r(plan_dct,re_c,re_v)
-         call dfftw_execute_r2r(plan_dct,im_c,im_v)
+         call dfftw_execute_r2r(plan_dct,re_c(:,j,m_ang),re_v(:,j,m_ang))
+         call dfftw_execute_r2r(plan_dct,im_c(:,j,m_ang),im_v(:,j,m_ang))
 
-         vals(:,j,m_ang) = cmplx(re_v,im_v,kind=rp)
+         vals(:,j,m_ang) = cmplx(re_v(:,j,m_ang),im_v(:,j,m_ang),kind=rp)
       end do
 
    end subroutine cheb_coef_to_real
 !=============================================================================
-   subroutine compute_DR_arr(m_ang,vals,coefs,DR)
+   subroutine compute_DR_arr(m_ang,vals,coefs,DR,re_v,im_v,re_c,im_c)
       integer(ip), intent(in) :: m_ang
       complex(rp), dimension(nx,ny,min_m:max_m), intent(in)  :: vals
       complex(rp), dimension(nx,ny,min_m:max_m), intent(out) :: coefs
       complex(rp), dimension(nx,ny,min_m:max_m), intent(out) :: DR
+      real(rp),    dimension(nx,ny,min_m:max_m), intent(inout) :: re_v, im_v, re_c, im_c
 
       integer(ip) :: i
    
-      call cheb_real_to_coef(m_ang,vals,coefs)
+      call cheb_real_to_coef(m_ang,vals,coefs,re_v,im_v,re_c,im_c)
 
       ! Any error incurred by setting the last two cheb coefs to zero 
       ! should converge away with higher resolution.
@@ -146,7 +157,7 @@ contains
 
       coefs(1,:,m_ang) = coefs(1,:,m_ang) / 2.0_rp
 
-      call cheb_coef_to_real(m_ang,coefs,DR)
+      call cheb_coef_to_real(m_ang,coefs,DR,re_v,im_v,re_c,im_c)
 
       DR(:,:,m_ang) = dx_over_dR * DR(:,:,m_ang)
 
@@ -157,8 +168,10 @@ contains
       type(field), intent(inout) :: f
 
       call set_level(step,m_ang,f)
-      call compute_DR_arr(m_ang,f%level,f%coefs_cheb,f%DR)
-
+      call compute_DR_arr(m_ang,f%level,f%coefs_cheb,f%DR, &
+         f%re,f%im, &
+         f%coefs_cheb_re,f%coefs_cheb_im &
+      )
    end subroutine compute_DR_field
 !=============================================================================
 ! Low pass filter. A smooth filter appears to help prevent Gibbs-like ringing
@@ -167,29 +180,31 @@ contains
       integer(ip), intent(in)    :: m_ang
       type(field), intent(inout) :: f
 
-      integer(ip) :: i
-      
-      call cheb_real_to_coef(m_ang,f%np1,f%coefs_cheb) 
+      call cheb_real_to_coef(m_ang,f%np1,f%coefs_cheb, &
+         f%re,f%im, &
+         f%coefs_cheb_re,f%coefs_cheb_im &
+      ) 
+      f%coefs_cheb(:,:,m_ang) = filter_arr*f%coefs_cheb(:,:,m_ang)
 
-      do i=1,nx
-         f%coefs_cheb(i,:,m_ang) = filter_arr(i)*f%coefs_cheb(i,:,m_ang)
-      end do
-
-      call cheb_coef_to_real(m_ang,f%coefs_cheb,f%np1) 
+      call cheb_coef_to_real(m_ang,f%coefs_cheb,f%np1, &
+         f%re,f%im, &
+         f%coefs_cheb_re,f%coefs_cheb_im &
+      ) 
    end subroutine cheb_filter
 !=============================================================================
    subroutine cheb_test()
       complex(rp), dimension(nx,ny,min_m:max_m) :: &
          vals, coefs, DR_vals, computed_DR_vals
+      real(rp), dimension(nx,ny,min_m:max_m) :: re, im, re_c, im_c
       integer(ip) :: i
-      integer(ip), parameter :: m_ang = 0_ip
+      integer(ip) :: m_ang = 0_ip
 
       do i=1,nx
          vals(i,:,:)    = sin(Rvec(i))**2
          DR_vals(i,:,:) = 2*sin(Rvec(i))*cos(Rvec(i))
       end do
 
-      call compute_DR(m_ang, vals, coefs, computed_DR_vals)
+      call compute_DR(m_ang, vals, coefs, computed_DR_vals, re, im, re_c, im_c)
 
       do i=1,nx
          write (*,*) computed_DR_vals(i,:,m_ang) - DR_vals(i,:,m_ang)
@@ -199,3 +214,4 @@ contains
    end subroutine cheb_test
 !=============================================================================
 end module mod_cheb
+

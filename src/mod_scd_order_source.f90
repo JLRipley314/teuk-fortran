@@ -70,6 +70,9 @@ module mod_scd_order_source
    complex(rp), dimension(nx,0:max_l,min_m:max_m) :: &
       coefs_swal, coefs_both
 
+   real(rp), dimension(nx,ny,min_m:max_m) :: &
+      re, im, coefs_cheb_re, coefs_cheb_im
+
    end type scd_order_source
 !-----------------------------------------------------------------------------
 ! name of scd_order_source field used in evolution
@@ -121,6 +124,11 @@ module mod_scd_order_source
       sf % pre_thorn_prime_nm1 = 0.0_rp
       sf % pre_thorn_prime_nm2 = 0.0_rp
       sf % pre_thorn_prime_nm3 = 0.0_rp
+
+      sf % re = 0.0_rp
+      sf % im = 0.0_rp
+      sf % coefs_cheb_re = 0.0_rp
+      sf % coefs_cheb_im = 0.0_rp 
 
    end subroutine scd_order_source_init
 !=============================================================================
@@ -328,8 +336,10 @@ module mod_scd_order_source
          sf%edth_prime)
 
       call compute_DT("pre_thorn_prime",m_ang,sf)
-!      call compute_DR(m_ang,sf%pre_thorn_prime_np1,sf%DR)
-      call compute_DR(m_ang,sf%pre_thorn_prime_np1,sf%coefs_cheb,sf%DR)
+      call compute_DR(m_ang,sf%pre_thorn_prime_np1,sf%coefs_cheb,sf%DR, &
+         sf%re,sf%im, &
+         sf%coefs_cheb_re,sf%coefs_cheb_im &
+      )
 
       call set_thorn_prime( &
          m_ang, &

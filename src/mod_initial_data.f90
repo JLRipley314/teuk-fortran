@@ -1,49 +1,41 @@
 module mod_initial_data
 !=============================================================================
    use mod_prec
-   use mod_field, only: field
-   use mod_cheb, only: Rvec
-   use mod_swal, only: Yvec, swal
+   use mod_field,  only: field
+   use mod_cheb,   only: Rvec
+   use mod_swal,   only: Yvec, swal
    use mod_params, only: &
       dt, nx, ny, &
       min_m, max_m, &
+      lin_m, &
       spin=>psi_spin, &
       cl=>compactification_length, &
       bhm=>black_hole_mass, &
       bhs=>black_hole_spin, &
       R_max, &
 ! initial data parameters 
-      pm1_ang, &
-      initial_data_direction_nm1, &
-      initial_data_direction_pm1, &
-      amp_re_nm1, rl_nm1, ru_nm1, l_ang_nm1, &
-      amp_im_nm1, &
-      amp_re_pm1, rl_pm1, ru_pm1, l_ang_pm1, &
-      amp_im_pm1, &
-
-      pm2_ang, &
-      initial_data_direction_nm2, &
-      initial_data_direction_pm2, &
-      amp_re_nm2, rl_nm2, ru_nm2, l_ang_nm2, &
-      amp_im_nm2, &
-      amp_re_pm2, rl_pm2, ru_pm2, l_ang_pm2, &
-      amp_im_pm2
+      initial_data_direction_v=>initial_data_direction, &
+      amp_re_v=>amp_re, &
+      amp_im_v=>amp_im, &
+      rl_v=>rl, &
+      ru_v=>ru, &
+      l_ang_v=>l_ang
 !=============================================================================
    implicit none
    private
 
    public :: set_initial_data
 
-   complex(rp), parameter :: ZI = (0.0_rp, 1.0_rp) 
+   complex(rp), parameter :: ZI = (0.0_rp, 1.0_rp)
 !=============================================================================
 contains
 !=============================================================================
-   subroutine set_initial_data(m_ang,p,q,f)
-      integer(ip), intent(in) :: m_ang
+   subroutine set_initial_data(m_i,p,q,f)
+      integer(ip), intent(in) :: m_i
       type(field), intent(inout) :: p, q, f
 
       integer(ip) :: i, j
-      integer(ip) :: l_ang
+      integer(ip) :: m_ang, l_ang
       real(rp) :: max_val, bump, r, y
       real(rp) :: width, rl, ru 
 
@@ -51,41 +43,15 @@ contains
 
       character(:), allocatable :: initial_data_direction
 
-      if (m_ang==pm1_ang) then
-         amp   = amp_re_pm1 + ZI*amp_im_pm1
-         ru    = ru_pm1
-         rl    = rl_pm1
-         l_ang = l_ang_pm1
-         initial_data_direction = initial_data_direction_pm1
-
-      else if (m_ang==-pm1_ang) then
-         amp   = amp_re_nm1 + ZI*amp_im_nm1
-         ru    = ru_nm1
-         rl    = rl_nm1
-         l_ang = l_ang_nm1
-         initial_data_direction = initial_data_direction_nm1
-
-      else if (m_ang==pm2_ang) then
-         amp   = amp_re_pm2 + ZI*amp_im_pm2
-         ru    = ru_pm2
-         rl    = rl_pm2
-         l_ang = l_ang_pm2
-         initial_data_direction = initial_data_direction_pm2
-
-      else if (m_ang==-pm2_ang) then
-         amp   = amp_re_nm2 + ZI*amp_im_nm2
-         ru    = ru_nm2
-         rl    = rl_nm2
-         l_ang = l_ang_nm2
-         initial_data_direction = initial_data_direction_nm2
-
-      else
-         write (*,*) "ERROR(set_initial_data): m_ang = ", m_ang
-         stop
-      end if
+      m_ang = lin_m(m_i)
+      amp   = amp_re_v(m_i) + ZI*amp_im_v(m_i)
+      ru    = ru_v(m_i)
+      rl    = rl_v(m_i)
+      l_ang = l_ang_v(m_i)
+      initial_data_direction = initial_data_direction_v(m_i:m_i)
 
       max_val = 0.0_rp
-      width = ru-rl
+      width = maxval([ru-rl,1e-16_rp]) ! need width>0 so no NaNs
 !-----------------------------------------------------------------------------
       y_loop: do j=1,ny
       x_loop: do i=1,nx-1 ! index 'i=nx' is at 'r=infinity'
@@ -129,7 +95,8 @@ contains
 !-----------------------------------------------------------------------------
    select case (initial_data_direction)
       !-----------------------------------------------------------------------
-      case ("ingoing")
+      ! ingoing
+      case ("i")
          do j=1,ny
          do i=1,nx
             R = Rvec(i)
@@ -155,7 +122,8 @@ contains
          end do
          end do
       !-----------------------------------------------------------------------
-      case ("outgoing")
+      ! outgoing
+      case ("o")
          do j=1,ny
          do i=1,nx
             R = Rvec(i)
@@ -184,7 +152,8 @@ contains
          end do
          end do
       !-----------------------------------------------------------------------
-      case ("time_symmetric")
+      ! time symmetric 
+      case ("t")
          do j=1,ny
          do i=1,nx
             R = Rvec(i)
@@ -216,3 +185,4 @@ contains
    end subroutine set_initial_data
 !=============================================================================
 end module mod_initial_data
+

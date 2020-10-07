@@ -59,94 +59,42 @@ sim.start_multiple= float(1.0)
 #=============================================================================
 ## Initial data
 #=============================================================================
-## p(m)n:                  +(-) m angular number
-## l_ang:                  initial data is a particular swal function
+## lin_m:      angular m number
+##
+## l_ang:      initial data is a particular swal function
+##
+## amp_re(im): initial amplitude of real/imaginary parts of psi4
+##
+## rl(ru)_0:   lower(upper) bounds of initial data as a multiple
+##             of the black hole horizon
+##
 ## initial_data_direction: which way pulse is approximately "heading"
-## amp_re(im)_pm:          initial amplitude of real/imaginary parts of psi4
-## rl(ru)_pm_0:            lower(upper) bounds of initial data as a multiple
-##                         of the black hole horizon
+##                         i = ingoing
+##                         o = outgoing
+##                         t = time symmetric
 #=============================================================================
-## initial data for mode m1
+## initial data for all linear modes 
 #=============================================================================
-sim.pm1_ang =  int(2) 
-#-----------------------------------------------------------------------------
-sim.l_ang_pm1= int(2)
+sim.lin_m=  [ -2,   2,  -3,   3]
+sim.l_ang=  [  2,   2,   3,   3]
 
-sim.initial_data_direction_pm1= "ingoing"#"outgoing"#"time_symmetric"#
+sim.amp_re= [0.0, 0.4, 0.0, 0.1]
+sim.amp_im= [0.0, 0.0, 0.0, 0.0]
 
-sim.amp_re_pm1= float(0.4)
-sim.amp_im_pm1= float(0.0)
+sim.rl_0=   [1.1, 1.1, 1.1, 1.1]
+sim.ru_0=   [2.5, 2.5, 2.5, 2.5]
 
-sim.rl_pm1_0= float( 1.1)
-sim.ru_pm1_0= float( 2.5)
-#-----------------------------------------------------------------------------
-sim.l_ang_nm1= int(2)
-
-sim.initial_data_direction_nm1= "ingoing"#"time_symmetric"#"outgoing"#
-
-sim.amp_re_nm1= float( 0.0)
-sim.amp_im_nm1= float( 0.0)
-
-sim.rl_nm1_0= float( 1.1)
-sim.ru_nm1_0= float( 2.5)
+sim.initial_data_direction= "iiii"
 #=============================================================================
-## initial data for mode m2
-#=============================================================================
-sim.pm2_ang =  int(3) ## m_ang is preserved by time evolution
-#-----------------------------------------------------------------------------
-sim.l_ang_pm2= int(3)
+## second order modes to evolve
 
-sim.initial_data_direction_pm2= "ingoing"#"time_symmetric"#"outgoing"#
-
-sim.amp_re_pm2= float(0.1)
-sim.amp_im_pm2= float(0.0)
-
-sim.rl_pm2_0= float( 1.1)
-sim.ru_pm2_0= float( 2.5)
-#-----------------------------------------------------------------------------
-sim.l_ang_nm2= int(3)
-
-sim.initial_data_direction_nm2= "ingoing"#"time_symmetric"#"outgoing"#
-
-sim.amp_re_nm2= float(0.0)
-sim.amp_im_nm2= float(0.0)
-
-sim.rl_nm2_0= float( 1.1) 
-sim.ru_nm2_0= float( 2.5)
-#=============================================================================
-## which m angular values to evolve
-
-sim.lin_m= [
-   -sim.pm1_ang,
-    sim.pm1_ang,
-   -sim.pm2_ang,
-    sim.pm2_ang
-]
-
-sim.scd_m= [
-     sim.pm1_ang+sim.pm2_ang,
-     sim.pm1_ang-sim.pm2_ang,
-   -(sim.pm1_ang+sim.pm2_ang),
-   -(sim.pm1_ang-sim.pm2_ang),
-   0
-]
+sim.scd_m= [0, -1, 1]
 #=============================================================================
 ## which m angular values to write to file
 
-sim.lin_write_m= [
-   -sim.pm1_ang,
-    sim.pm1_ang,
-   -sim.pm2_ang,
-    sim.pm2_ang
-]
+sim.write_lin_m= sim.lin_m 
 
-sim.scd_write_m= [
-     sim.pm1_ang+sim.pm2_ang,
-     sim.pm1_ang-sim.pm2_ang,
-   -(sim.pm1_ang+sim.pm2_ang),
-   -(sim.pm1_ang-sim.pm2_ang),
-   0
-]
+sim.write_scd_m= sim.scd_m
 #=============================================================================
 if (sim.run_type == "basic_run"):
    sim.launch_run()

@@ -21,9 +21,8 @@ module mod_write_level
    use mod_metric_recon, only: metric_recon_indep_res
 
    use mod_params, only: &
-      lin_write_m, scd_write_m, &
-      len_lin_write_m, len_scd_write_m, &
-      pm1_ang, pm2_ang, &
+      write_lin_m, len_write_lin_m, &
+      write_scd_m, len_write_scd_m, &
       metric_recon, scd_order, &
       write_metric_recon_fields, &
       write_indep_res, write_scd_order_source, &
@@ -53,31 +52,32 @@ contains
 
       complex(rp) :: mean
       integer(ip) :: i 
-
+      !-----------------------------------------------------------------------
       write(stdout,'(e14.6)',advance='no') time
       !-----------------------------------------------------------------------
       ! field values at future null infinity and horizon
       !-----------------------------------------------------------------------
-      do i=1,len_lin_write_m
+      do i=1,len_write_lin_m
 
-         mean = sum(psi4_lin_f%np1(1 ,:,lin_write_m(i))) / ny
+         mean = sum(psi4_lin_f%np1(1,:,write_lin_m(i))) / ny
          write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
          write(stdout,'(e14.6)',advance='no') aimag(mean)
 
-         mean = sum(psi4_lin_f%np1(nx,:,lin_write_m(i))) / ny
+         mean = sum(psi4_lin_f%np1(nx,:,write_lin_m(i))) / ny
          write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
          write(stdout,'(e14.6)',advance='no') aimag(mean)
+
       end do
+      do i=1,len_write_scd_m
 
-      do i=1,len_scd_write_m
-
-         mean = sum(psi4_scd_f%np1(1 ,:,scd_write_m(i))) / ny
+         mean = sum(psi4_scd_f%np1(1,:,write_scd_m(i))) / ny
          write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
          write(stdout,'(e14.6)',advance='no') aimag(mean)
 
-         mean = sum(psi4_scd_f%np1(nx,:,scd_write_m(i))) / ny
+         mean = sum(psi4_scd_f%np1(nx,:,write_scd_m(i))) / ny
          write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
          write(stdout,'(e14.6)',advance='no') aimag(mean)
+
       end do
       !-----------------------------------------------------------------------
       ! line break
@@ -93,34 +93,34 @@ contains
       !-----------------------------------------------------------------------
       ! \Psi_4^{(1)} and linear metric reconstruction 
       !--------------------------------------------------------------------------
-      do i=1,len_lin_write_m
-         call write_csv(time,lin_write_m(i),psi4_lin_f)
+      do i=1,len_write_lin_m
+         call write_csv(time,write_lin_m(i),psi4_lin_f)
       end do 
 
       if (write_metric_recon_fields) then
-         do i=1,len_lin_write_m
-            call write_csv(time,lin_write_m(i),psi3)
-            call write_csv(time,lin_write_m(i),psi2)
-            call write_csv(time,lin_write_m(i),hmbmb)
-            call write_csv(time,lin_write_m(i),hlmb)
-            call write_csv(time,lin_write_m(i),muhll)
+         do i=1,len_write_lin_m
+            call write_csv(time,write_lin_m(i),psi3)
+            call write_csv(time,write_lin_m(i),psi2)
+            call write_csv(time,write_lin_m(i),hmbmb)
+            call write_csv(time,write_lin_m(i),hlmb)
+            call write_csv(time,write_lin_m(i),muhll)
          end do
       end if
 
       if (write_indep_res) then
          if (.not. constrained_evo) then
-            do i=1,len_lin_write_m
-               call compute_res_q( lin_write_m(i),psi4_lin_q,psi4_lin_f,res_lin_q)
-               call write_csv(time,lin_write_m(i),res_lin_q)
+            do i=1,len_write_lin_m
+               call compute_res_q( write_lin_m(i),psi4_lin_q,psi4_lin_f,res_lin_q)
+               call write_csv(time,write_lin_m(i),res_lin_q)
             end do
          end if
          if (metric_recon) then
-            do i=1,len_lin_write_m
-               call metric_recon_indep_res(lin_write_m(i))
+            do i=1,len_write_lin_m
+               call metric_recon_indep_res(write_lin_m(i))
 
-               call write_csv(time,lin_write_m(i),res_bianchi3)
-               call write_csv(time,lin_write_m(i),res_bianchi2)
-               call write_csv(time,lin_write_m(i),res_hll)
+               call write_csv(time,write_lin_m(i),res_bianchi3)
+               call write_csv(time,write_lin_m(i),res_bianchi2)
+               call write_csv(time,write_lin_m(i),res_hll)
             end do
          end if
       end if
@@ -129,26 +129,26 @@ contains
       !-----------------------------------------------------------------------
       if (scd_order) then
 
-         do i=1,len_scd_write_m
-            call write_csv(time,scd_write_m(i),psi4_scd_f)
+         do i=1,len_write_scd_m
+            call write_csv(time,write_scd_m(i),psi4_scd_f)
          end do
 
          if (write_indep_res) then
             if (.not. constrained_evo) then
-               do i=1,len_scd_write_m
-                  call compute_res_q( scd_write_m(i),psi4_scd_q,psi4_scd_f,res_scd_q)
-                  call write_csv(time,scd_write_m(i),res_scd_q)
+               do i=1,len_write_scd_m
+                  call compute_res_q( write_scd_m(i),psi4_scd_q,psi4_scd_f,res_scd_q)
+                  call write_csv(time,write_scd_m(i),res_scd_q)
                end do
             end if
          end if
 
          if (write_scd_order_source) then 
-            do i=1,len_scd_write_m
+            do i=1,len_write_scd_m
                call write_csv( &
                   source%fname, &
                   time, &
-                  scd_write_m(i), &
-                  source%np1(:,:,scd_write_m(i)) &
+                  write_scd_m(i), &
+                  source%np1(:,:,write_scd_m(i)) &
                )
             end do
          end if
@@ -157,44 +157,52 @@ contains
       !-----------------------------------------------------------------------
       if (write_coefs) then
          !--------------------------------------------------------------------
-         do i=1,len_lin_write_m
+         do i=1,len_write_lin_m
             call cheb_real_to_coef( &
-               lin_write_m(i), &
+               write_lin_m(i), &
                psi4_lin_f%np1, &
-               psi4_lin_f%coefs_cheb &
+               psi4_lin_f%coefs_cheb, &
+               psi4_lin_f%re, &
+               psi4_lin_f%im, &
+               psi4_lin_f%coefs_cheb_re, &
+               psi4_lin_f%coefs_cheb_im  &
             )
             call swal_real_to_coef( &
                psi4_lin_f%spin, &
-               lin_write_m(i), &
+               write_lin_m(i), &
                psi4_lin_f%coefs_cheb, &
                psi4_lin_f%coefs_both &
             )
             call write_csv( &
                "coefs_"//psi4_lin_f%fname, &
                time, &
-               lin_write_m(i), &
-               psi4_lin_f%coefs_both(:,:,lin_write_m(i)) &
+               write_lin_m(i), &
+               psi4_lin_f%coefs_both(:,:,write_lin_m(i)) &
             )
          end do 
          !--------------------------------------------------------------------
          if (scd_order) then
-            do i=1,len_scd_write_m
+            do i=1,len_write_scd_m
                call cheb_real_to_coef( &
-                  scd_write_m(i), &
+                  write_scd_m(i), &
                   psi4_scd_f%np1, &
-                  psi4_scd_f%coefs_cheb &
+                  psi4_scd_f%coefs_cheb, &
+                  psi4_scd_f%re, &
+                  psi4_scd_f%im, &
+                  psi4_scd_f%coefs_cheb_re, &
+                  psi4_scd_f%coefs_cheb_im  &
                )
                call swal_real_to_coef( &
                   psi4_scd_f%spin, &
-                  scd_write_m(i), &
+                  write_scd_m(i), &
                   psi4_scd_f%coefs_cheb, &
                   psi4_scd_f%coefs_both &
                )
                call write_csv( &
                   "coefs_"//psi4_scd_f%fname, &
                   time, &
-                  scd_write_m(i), &
-                  psi4_scd_f%coefs_both(:,:,scd_write_m(i)) &
+                  write_scd_m(i), &
+                  psi4_scd_f%coefs_both(:,:,write_scd_m(i)) &
                )
             end do 
          end if
@@ -204,3 +212,4 @@ contains
    end subroutine write_level
 !=============================================================================
 end module mod_write_level
+

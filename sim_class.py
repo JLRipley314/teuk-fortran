@@ -24,7 +24,7 @@ class Sim:
          self.debug=False
 #=============================================================================
    def make_output_dir(self)->None:
-      time_of_day= time.asctime().split(' ')
+      time_of_day= time.asctime().split()
       self.output_stem= str(
          time_of_day[1]
       +  '_'+time_of_day[2]
@@ -60,17 +60,8 @@ class Sim:
          /self.horizon
       )
 
-      self.rl_pm1= self.horizon*self.rl_pm1_0
-      self.ru_pm1= self.horizon*self.ru_pm1_0
-
-      self.rl_nm1= self.horizon*self.rl_nm1_0
-      self.ru_nm1= self.horizon*self.ru_nm1_0
-
-      self.rl_pm2= self.horizon*self.rl_pm2_0
-      self.ru_pm2= self.horizon*self.ru_pm2_0
-
-      self.rl_nm2= self.horizon*self.rl_nm2_0
-      self.ru_nm2= self.horizon*self.ru_nm2_0 
+      self.rl= [self.horizon*x for x in self.rl_0]
+      self.ru= [self.horizon*x for x in self.ru_0]
 #-----------------------------------------------------------------------------
       absa = abs(self.black_hole_spin/self.black_hole_mass)
       self.constraint_damping = abs(
@@ -79,33 +70,22 @@ class Sim:
 #-----------------------------------------------------------------------------
 ## when to begin metric reconstruction
       self.scd_order_start_time = self.black_hole_mass*max(
-            self.start_multiple*(
-               (2.0/self.black_hole_mass)*(self.ru_nm1 - self.horizon)
-            +  4.0*log(self.ru_nm1/self.horizon)
-            ),
-            self.start_multiple*(
-               (2.0/self.black_hole_mass)*(self.ru_pm1 - self.horizon)
-            +  4.0*log(self.ru_pm1/self.horizon)
-            ),
-            self.start_multiple*(
-               (2.0/self.black_hole_mass)*(self.ru_nm2 - self.horizon)
-            +  4.0*log(self.ru_nm2/self.horizon)
-            ),
-            self.start_multiple*(
-               (2.0/self.black_hole_mass)*(self.ru_pm2 - self.horizon)
-            +  4.0*log(self.ru_pm2/self.horizon)
-            )
+         [  self.start_multiple*(
+               (2.0/self.black_hole_mass)*(x - self.horizon)
+            +  4.0*log(max(x,self.horizon)/self.horizon)
+            ) for x in self.ru
+         ]
       )
 #-----------------------------------------------------------------------------
 ## positive definite m_ang for metric reconstruction step
       self.lin_pos_m = [ m for m in self.lin_m if m>=0]
 
-      self.len_lin_pos_m= len(set(self.lin_pos_m))
-      self.len_lin_m=     len(set(self.lin_m))
-      self.len_scd_m=     len(set(self.scd_m))
+      self.len_lin_pos_m= len(self.lin_pos_m)
+      self.len_lin_m=     len(self.lin_m)
+      self.len_scd_m=     len(self.scd_m)
 
-      self.len_lin_write_m= len(set(self.lin_write_m))
-      self.len_scd_write_m= len(set(self.scd_write_m))
+      self.len_write_lin_m= len(self.write_lin_m)
+      self.len_write_scd_m= len(self.write_scd_m)
 #-----------------------------------------------------------------------------
 ## for openmp
 
@@ -114,11 +94,11 @@ class Sim:
 ## Gauss points for integration
 ## want to exactly integrate polynomials of order
 ## 2l + 2m(i.e. lmin) + alpha + beta (so being a bit conservative here) 
-      lmin= max(abs(self.pm1_ang),abs(self.pm2_ang),abs(self.psi_spin))
+      lmin= max(max([abs(m) for m in self.lin_m]),abs(self.psi_spin))
       self.ny= (self.nl
       +	int(abs(2*lmin))
-      + int(abs(2*self.pm1_ang+self.psi_spin))
-      +	int(abs(2*self.pm1_ang-self.psi_spin))
+      + int(abs(2*max([abs(m) for m in self.lin_m])+self.psi_spin))
+      +	int(abs(2*max([abs(m) for m in self.lin_m])-self.psi_spin))
       )
       if (self.ny%2!=0):
          self.ny+= 1
@@ -141,22 +121,18 @@ class Sim:
          self.t_step_save= 1
 #-----------------------------------------------------------------------------
       self.max_m= max(
-         max(self.lin_m),
-         max(self.scd_m),
+         max([abs(x) for x in self.lin_m]),
+         max([abs(x) for x in self.scd_m]),
          1)
-      self.min_m= min(
-         min(self.lin_m),
-         min(self.scd_m),
-         1)
+      self.min_m= -self.max_m 
 #-----------------------------------------------------------------------------
       self.max_s=  3
       self.min_s= -3
 #-----------------------------------------------------------------------------
-      assert(self.pm2_ang!=self.pm1_ang)
-      assert(self.l_ang_nm1>=max(abs(self.pm1_ang),abs(self.psi_spin)))
-      assert(self.l_ang_pm1>=max(abs(self.pm1_ang),abs(self.psi_spin)))
-      assert(self.l_ang_nm2>=max(abs(self.pm2_ang),abs(self.psi_spin)))
-      assert(self.l_ang_pm2>=max(abs(self.pm2_ang),abs(self.psi_spin)))
+      assert(len(self.lin_m)==len(set(self.lin_m)))
+      assert(len(self.scd_m)==len(set(self.scd_m)))
+      assert(len(self.write_lin_m)==len(set(self.write_lin_m)))
+      assert(len(self.write_scd_m)==len(set(self.write_scd_m)))
 #=============================================================================
    def make_tables_dir(self)->None:
       self.tables_dir= self.output_dir+"/tables"
@@ -272,13 +248,16 @@ class Sim:
             if ((type(attrs[param])==list)
             and  type(attrs[param][0])==int
             ):
-               l= list(set(attrs[param])) ## to get rid of duplicates in list 
+               l= list(attrs[param])
                n= len(l)
-               lstr= "[{}_ip".format(l[0])
-               for item in l[1:]:
-                  lstr+= ",{}_ip".format(item)
-               lstr+= "]"
-               f.write("   integer(ip), dimension({}), parameter :: {} = {}\n".format(n,param,lstr))
+               f.write("   integer(ip), dimension({}), parameter :: {} = {}\n".format(n,param,l))
+
+            if ((type(attrs[param])==list)
+            and  type(attrs[param][0])==float
+            ):
+               l= list(attrs[param])
+               n= len(l)
+               f.write("   real(rp), dimension({}), parameter :: {} = {}\n".format(n,param,l))
 
          f.write('end module mod_params\n')
       subprocess.call('make clean_obj',shell=True)
