@@ -23,7 +23,7 @@ implicit none
    logical, parameter :: write_coefs = .false.
    character(*), parameter :: computer = 'della'
    character(*), parameter :: della_out_stem = '/tigress/jripley/tf-out/'
-   character(*), parameter :: walltime = '144:00:00'
+   character(*), parameter :: walltime = '24:00:00'
    character(*), parameter :: memory = '2048'
    character(*), parameter :: email = 'lloydripley@gmail.com'
    integer(ip), parameter :: psi_spin = -2_ip
@@ -87,8 +87,8 @@ implicit none
    integer(ip), parameter :: min_m = -5_ip
    integer(ip), parameter :: max_s = 3_ip
    integer(ip), parameter :: min_s = -3_ip
-   character(*), parameter :: output_stem = 'Oct__6_m0.5_s0.35_nx160_nl30'
-   character(*), parameter :: output_dir = '/tigress/jripley/tf-out/Oct__6_m0.5_s0.35_nx160_nl30'
-   character(*), parameter :: bin_name = 'Oct__6_m0.5_s0.35_nx160_nl30.run'
-   character(*), parameter :: tables_dir = '/tigress/jripley/tf-out/Oct__6_m0.5_s0.35_nx160_nl30/tables'
+   character(*), parameter :: output_stem = 'Oct__7_m0.5_s0.35_nx160_nl30'
+   character(*), parameter :: output_dir = '/tigress/jripley/tf-out/Oct__7_m0.5_s0.35_nx160_nl30'
+   character(*), parameter :: bin_name = 'Oct__7_m0.5_s0.35_nx160_nl30.run'
+   character(*), parameter :: tables_dir = '/tigress/jripley/tf-out/Oct__7_m0.5_s0.35_nx160_nl30/tables'
 end module mod_params

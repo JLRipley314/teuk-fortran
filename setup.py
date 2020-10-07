@@ -38,7 +38,8 @@ sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
 
-sim.walltime= '144:00:00' ## (hh:mm:ss)
+#sim.walltime= '144:00:00' ## (hh:mm:ss)
+sim.walltime= '24:00:00' ## (hh:mm:ss)
 sim.memory=  '2048' ## MB 
 sim.email=  'lloydripley@gmail.com' ## for slurm notification
 #=============================================================================

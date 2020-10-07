@@ -184,7 +184,9 @@ class Sim:
          f.write('#SBATCH --ntasks-per-node=1\n')
          f.write('#SBATCH --cpus-per-task={}\n'.format(self.num_threads))
 
-         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n'.format(self.num_threads))
+         f.write('\nmodule load intel\n')
+
+         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n')
          #------------
          ## executable
          #------------
@@ -192,11 +194,12 @@ class Sim:
          if (self.debug):
             run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
          f.write('\n'+run_str)
+         # close file
 
-         shutil.copyfile(
+      shutil.copyfile(
          '{}/run.slurm'.format(self.home_dir),
          '{}/run.slurm'.format(self.output_dir)
-         )
+      )
 #=============================================================================
    def compile(self)->None:
       subprocess.call('make '+self.bin_name,shell=True)
