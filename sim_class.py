@@ -77,19 +77,11 @@ class Sim:
          ]
       )
 #-----------------------------------------------------------------------------
-## positive definite m_ang for metric reconstruction step
       self.lin_pos_m = [ m for m in self.lin_m if m>=0]
-
-      self.len_lin_pos_m= len(self.lin_pos_m)
-      self.len_lin_m=     len(self.lin_m)
-      self.len_scd_m=     len(self.scd_m)
-
-      self.len_write_lin_m= len(self.write_lin_m)
-      self.len_write_scd_m= len(self.write_scd_m)
+      self.scd_pos_m = [ m for m in self.scd_m if m>=0]
 #-----------------------------------------------------------------------------
-## for openmp
-
-      self.num_threads= self.len_lin_pos_m
+## for parallelism (if applied)
+      self.num_threads= len(set(self.lin_pos_m))
 #-----------------------------------------------------------------------------
 ## Gauss points for integration
 ## want to exactly integrate polynomials of order
@@ -121,10 +113,13 @@ class Sim:
          self.t_step_save= 1
 #-----------------------------------------------------------------------------
       self.max_m= max(
-         max([abs(x) for x in self.lin_m]),
-         max([abs(x) for x in self.scd_m]),
+         max(self.lin_m),
+         max(self.scd_m),
          1)
-      self.min_m= -self.max_m 
+      self.min_m= min(
+         min(self.lin_m),
+         min(self.scd_m),
+         1)
 #-----------------------------------------------------------------------------
       self.max_s=  3
       self.min_s= -3
@@ -142,7 +137,15 @@ class Sim:
       with open(self.output_dir+'/sim_params.txt','w') as f:
          attrs= vars(self)
          for param in attrs:
-            f.write('{} {}\n'.format(param,attrs[param]))	
+            if type(attrs[param])!=list:
+               f.write('{} {}\n'.format(param,attrs[param]))	
+            else:
+               f.write('len_'+param+' '+str(len(attrs[param]))+'\n')
+
+               write_str= param
+               for val in attrs[param]:
+                  write_str+= ' '+str(val)
+               f.write(write_str+'\n')
 #=============================================================================
    def write_slurm_script(self):
       with open('{}/run.slurm'.format(self.home_dir), 'w') as f:
@@ -150,19 +153,15 @@ class Sim:
          f.write('#SBATCH -J fteuk\t\t# job name\n')
          f.write('#SBATCH -t {}\t\t# walltime (dd:hh:mm:ss)\n'.format(self.walltime))
          f.write('#SBATCH -p physics\t\t# partition/queue name\n')
+         f.write('#SBATCH --mem={}MB\n'.format(self.memory))
          f.write('#SBATCH --output={}\t\t# file for STDOUT\n'.format(self.output_file))
          f.write('#SBATCH --mail-user={}\t\t# Mail  id of the user\n'.format(self.email))
-         f.write('#SBATCH --mem-per-cpu={}MB\n'.format(self.memory))
          #------------
          ## for openmp
          #------------
          f.write('#SBATCH --nodes=1\n')
          f.write('#SBATCH --ntasks-per-node=1\n')
          f.write('#SBATCH --cpus-per-task={}\n'.format(self.num_threads))
-
-         f.write('\nmodule load intel\n')
-
-         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n')
          #------------
          ## executable
          #------------
@@ -170,12 +169,11 @@ class Sim:
          if (self.debug):
             run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
          f.write('\n'+run_str)
-         # close file
 
-      shutil.copyfile(
+         shutil.copyfile(
          '{}/run.slurm'.format(self.home_dir),
          '{}/run.slurm'.format(self.output_dir)
-      )
+         )
 #=============================================================================
    def compile(self)->None:
       subprocess.call('make '+self.bin_name,shell=True)
@@ -184,7 +182,6 @@ class Sim:
       self.set_derived_params()
 
       self.make_output_dir()
-      self.bin_name= self.output_stem+'.run'
 
       self.make_tables_dir()
       save_cheb(self.tables_dir,self.nx)
@@ -192,12 +189,13 @@ class Sim:
       self.make_Gauss_pts()
 
       self.write_sim_params()
-      self.write_mod_params()
+      if self.recompile==True:
+         self.then_recompile()
 
       self.output_file= self.output_dir+'/output.txt'
       if (self.computer=='home'):
          run_str= (
-            'time ./bin/'+self.bin_name+' > '+self.output_file+' 2>&1 &'
+            'time ./bin/'+self.bin_name+' '+self.output_dir+' > '+self.output_file+' 2>&1 &'
          )
          if (self.debug):
             run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
@@ -214,51 +212,6 @@ class Sim:
          for m_ang in range(self.min_m,self.max_m+1):
             save_Gauss_quad_vals_swaL(self.tables_dir,spin,m_ang,self.nl,self.ny) 
 #=============================================================================
-## write mod_params.f90 and recompile so everything is a module
-## will probably rewrite at some point...
-   def write_mod_params(self)->None:
-      attrs= vars(self)
-      with open('src/mod_params.f90','w') as f:
-         f.write('!\n')
-         f.write('! automatically generated from sim_class.py\n')
-         f.write('!\n')
-         f.write('module mod_params\n')
-         f.write('use mod_prec\n')
-         f.write('implicit none\n')
-         attrs= vars(self)
-         for param in attrs:
-            if (type(attrs[param])==str):
-               f.write("   character(*), parameter :: {} = '{}'\n".format(param,attrs[param]))
-
-            if (type(attrs[param])==int):
-               f.write("   integer(ip), parameter :: {} = {}_ip\n".format(param,attrs[param]))
-
-            if (type(attrs[param])==bool):
-               if attrs[param]==True:
-                  f.write("   logical, parameter :: {} = .true.\n".format(param))
-               if attrs[param]==False:
-                  f.write("   logical, parameter :: {} = .false.\n".format(param))
-
-            if (type(attrs[param])==float):
-               f.write("   real(rp), parameter :: {} = {}_rp\n".format(param,attrs[param]))
-
-            if (type(attrs[param])==complex):
-               f.write("   complex(rp), parameter :: {} = ({}_rp,{}_rp)\n".format(param,attrs[param].real,attrs[param].imag))
-
-            if ((type(attrs[param])==list)
-            and  type(attrs[param][0])==int
-            ):
-               l= list(attrs[param])
-               n= len(l)
-               f.write("   integer(ip), dimension({}), parameter :: {} = {}\n".format(n,param,l))
-
-            if ((type(attrs[param])==list)
-            and  type(attrs[param][0])==float
-            ):
-               l= list(attrs[param])
-               n= len(l)
-               f.write("   real(rp), dimension({}), parameter :: {} = {}\n".format(n,param,l))
-
-         f.write('end module mod_params\n')
-      subprocess.call('make clean_obj',shell=True)
+   def then_recompile(self)->None:
+      subprocess.call('make clean_obj'+self.bin_name,shell=True)
       subprocess.call('make '+self.bin_name,shell=True)

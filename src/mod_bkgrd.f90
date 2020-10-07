@@ -17,7 +17,7 @@ module mod_bkgrd_np
 !=============================================================================
    use mod_prec
    use mod_params, only: &
-      nx, ny, & 
+      ZI, nx, ny, & 
       cl=>compactification_length, &
       bhm=>black_hole_mass, &
       bhs=>black_hole_spin
@@ -30,15 +30,18 @@ module mod_bkgrd_np
 
    public :: bkgrd_np_init
 
-   complex(rp), dimension(nx,ny), public, protected :: &
-      mu_0, ta_0, pi_0, rh_0, ep_0, &
-      psi2_0 
-
-   complex(rp), parameter :: ZI = (0.0_rp, 1.0_rp) 
+   complex(rp), allocatable, public, protected :: &
+      mu_0(:,:), ta_0(:,:), pi_0(:,:), rh_0(:,:), ep_0(:,:), psi2_0(:,:)  
 !=============================================================================
 contains
 !=============================================================================
    subroutine bkgrd_np_init()
+      allocate(mu_0(nx,ny))
+      allocate(ta_0(nx,ny))
+      allocate(pi_0(nx,ny))
+      allocate(rh_0(nx,ny))
+      allocate(ep_0(nx,ny))
+      allocate(psi2_0(nx,ny))
       !----------------------------
       mu_0 = &
          1.0_rp / (-(cl**2) + ZI*bhs*R*cy)

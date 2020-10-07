@@ -16,7 +16,7 @@ module mod_scd_order_source
 
    use mod_params,   only: &
       dt, nx, ny, min_m, max_m, max_l, &
-      lin_m, &
+      len_lin_m, lin_m, &
       cl=>compactification_length, &
       bhs=>black_hole_spin
 
@@ -25,7 +25,9 @@ module mod_scd_order_source
    private
 
    public :: scd_order_source, &
-      scd_order_source_init, scd_order_source_compute, &
+      scd_order_source_init, &
+      set_scd_order_source_fields, &
+      scd_order_source_compute, &
       scd_order_source_shift_time_step
 !=============================================================================
 ! scd_order_source type:
@@ -39,39 +41,38 @@ module mod_scd_order_source
       pre_edth_prime_spin,  pre_edth_prime_boost,  pre_edth_prime_falloff, &
       pre_thorn_prime_spin, pre_thorn_prime_boost, pre_thorn_prime_falloff
 
-   complex(rp), dimension(nx,ny,min_m:max_m) :: &
-      n1h, &
-      n, &
-      np1, &
+   complex(rp), allocatable :: &
+      n1h(:,:,:), &
+      n(:,:,:), &
+      np1(:,:,:), &
 
-      level, &
-      DT, &
-      DR, &
-      raised, &
-      lowered, & 
+      level(:,:,:), &
+      DT(:,:,:), &
+      DR(:,:,:), &
+      raised(:,:,:), &
+      lowered(:,:,:), & 
 
-      coefs_cheb, &
+      edth_prime(:,:,:), &
+      thorn_prime(:,:,:), &
 
-      edth_prime, &
-      thorn_prime, &
+      pre_edth_prime_np1(:,:,:), &
+      pre_edth_prime_n(:,:,:), &
+      pre_edth_prime_nm1(:,:,:), &
+      pre_edth_prime_nm2(:,:,:), &
+      pre_edth_prime_nm3(:,:,:), &
 
-      pre_edth_prime_np1, &
-      pre_edth_prime_n, &
-      pre_edth_prime_nm1, &
-      pre_edth_prime_nm2, &
-      pre_edth_prime_nm3, &
+      pre_thorn_prime_np1(:,:,:), &
+      pre_thorn_prime_n(:,:,:), &
+      pre_thorn_prime_nm1(:,:,:), &
+      pre_thorn_prime_nm2(:,:,:), &
+      pre_thorn_prime_nm3(:,:,:), & 
 
-      pre_thorn_prime_np1, &
-      pre_thorn_prime_n, &
-      pre_thorn_prime_nm1, &
-      pre_thorn_prime_nm2, &
-      pre_thorn_prime_nm3
+      coefs_cheb(:,:,:), &
+      coefs_swal(:,:,:), &
+      coefs_both(:,:,:)
 
-   complex(rp), dimension(nx,0:max_l,min_m:max_m) :: &
-      coefs_swal, coefs_both
-
-   real(rp), dimension(nx,ny,min_m:max_m) :: &
-      re, im, coefs_cheb_re, coefs_cheb_im
+   real(rp), allocatable :: &
+      re(:,:,:), im(:,:,:), coefs_cheb_re(:,:,:), coefs_cheb_im(:,:,:) 
 
    end type scd_order_source
 !-----------------------------------------------------------------------------
@@ -96,39 +97,66 @@ module mod_scd_order_source
       sf % pre_edth_prime_falloff  = 3_ip
       sf % pre_thorn_prime_falloff = 3_ip
 
+      allocate(sf % n1h(nx,ny,min_m:max_m))
+      allocate(sf % n(  nx,ny,min_m:max_m))
+      allocate(sf % np1(nx,ny,min_m:max_m))
       sf % n1h = 0.0_rp
       sf % n   = 0.0_rp
       sf % np1 = 0.0_rp
 
+      allocate(sf % level(  nx,ny,min_m:max_m))
+      allocate(sf % DT(     nx,ny,min_m:max_m))
+      allocate(sf % DR(     nx,ny,min_m:max_m))
+      allocate(sf % raised( nx,ny,min_m:max_m))
+      allocate(sf % lowered(nx,ny,min_m:max_m))
       sf % level = 0.0_rp
       sf % DT    = 0.0_rp
       sf % DR    = 0.0_rp
       sf % raised  = 0.0_rp
       sf % lowered = 0.0_rp 
 
+      allocate(sf % coefs_swal(nx,0:max_l,min_m:max_m))
+      allocate(sf % coefs_cheb(nx,     ny,min_m:max_m))
+      allocate(sf % coefs_both(nx,0:max_l,min_m:max_m))
       sf % coefs_swal = 0.0_rp
       sf % coefs_cheb = 0.0_rp
       sf % coefs_both = 0.0_rp
 
+      allocate(sf % edth_prime( nx,ny,min_m:max_m))
+      allocate(sf % thorn_prime(nx,ny,min_m:max_m))
       sf %  edth_prime = 0.0_rp
       sf % thorn_prime = 0.0_rp
 
+      allocate(sf % pre_edth_prime_np1(nx,ny,min_m:max_m))
+      allocate(sf % pre_edth_prime_n(  nx,ny,min_m:max_m))
+      allocate(sf % pre_edth_prime_nm1(nx,ny,min_m:max_m))
+      allocate(sf % pre_edth_prime_nm2(nx,ny,min_m:max_m))
+      allocate(sf % pre_edth_prime_nm3(nx,ny,min_m:max_m))
       sf % pre_edth_prime_np1 = 0.0_rp
       sf % pre_edth_prime_n   = 0.0_rp
       sf % pre_edth_prime_nm1 = 0.0_rp
       sf % pre_edth_prime_nm2 = 0.0_rp
       sf % pre_edth_prime_nm3 = 0.0_rp
 
+      allocate(sf % pre_thorn_prime_np1(nx,ny,min_m:max_m))
+      allocate(sf % pre_thorn_prime_n(  nx,ny,min_m:max_m))
+      allocate(sf % pre_thorn_prime_nm1(nx,ny,min_m:max_m))
+      allocate(sf % pre_thorn_prime_nm2(nx,ny,min_m:max_m))
+      allocate(sf % pre_thorn_prime_nm3(nx,ny,min_m:max_m))
       sf % pre_thorn_prime_np1 = 0.0_rp
       sf % pre_thorn_prime_n   = 0.0_rp
       sf % pre_thorn_prime_nm1 = 0.0_rp
       sf % pre_thorn_prime_nm2 = 0.0_rp
       sf % pre_thorn_prime_nm3 = 0.0_rp
 
+      allocate(sf%re(           nx,ny,min_m:max_m))
+      allocate(sf%im(           nx,ny,min_m:max_m))
+      allocate(sf%coefs_cheb_re(nx,ny,min_m:max_m))
+      allocate(sf%coefs_cheb_im(nx,ny,min_m:max_m))
       sf % re = 0.0_rp
       sf % im = 0.0_rp
       sf % coefs_cheb_re = 0.0_rp
-      sf % coefs_cheb_im = 0.0_rp 
+      sf % coefs_cheb_im = 0.0_rp
 
    end subroutine scd_order_source_init
 !=============================================================================
@@ -176,50 +204,10 @@ module mod_scd_order_source
       integer(ip),            intent(in)    :: m1_ang, m2_ang
       type(scd_order_source), intent(inout) :: sf
 
-      integer(ip), parameter :: step = 5_ip
       integer(ip) :: mt_ang
 
       mt_ang = m1_ang + m2_ang
 
-      !-----------------------------------------------------------------------
-      call set_level(step,m1_ang,psi4_lin_f)
-      call set_level(step,m1_ang,psi3)
-      call set_level(step,m1_ang,la)
-      call set_level(step,m1_ang,pi)
-      call set_level(step,m1_ang,hmbmb)
-      call set_level(step,m1_ang,hlmb)
-      call set_level(step,m1_ang,muhll)
-
-      call set_level(step,-m1_ang,hlmb)
-      call set_level(step,-m1_ang,hmbmb)
-
-      call set_level(step,m2_ang,psi4_lin_f)
-      call set_level(step,m2_ang,psi3)
-      call set_level(step,m2_ang,psi2)
-      call set_level(step,m2_ang,hmbmb)
-      call set_level(step,m2_ang,hlmb)
-      call set_level(step,m2_ang,muhll)
-
-      call set_level(step,-m2_ang,pi)
-      call set_level(step,-m2_ang,hmbmb)
-      call set_level(step,-m2_ang,hlmb)
-      call set_level(step,-m2_ang,muhll)
-
-      call set_thorn_prime(step,m2_ang,psi4_lin_f)
-      call set_thorn_prime(step,m2_ang,psi3)
-      call set_thorn_prime(step,m2_ang,muhll)
-      call set_thorn_prime(step,m2_ang,hlmb)
-
-      call set_edth_prime(step,m2_ang,psi4_lin_f)
-
-      call set_edth(step,m2_ang,psi3)
-      call set_edth(step,m2_ang,hmbmb)
-      call set_edth(step,m2_ang,hlmb)
-
-      call set_edth(step,-m2_ang,hlmb)
-      call set_edth(step,-m2_ang,hmbmb)
-
-      call set_thorn_prime(step,-m2_ang,hlmb)
       !--------------------------------------------------------------------
       ! pre_thorn_prime term
       !--------------------------------------------------------------------
@@ -297,6 +285,35 @@ module mod_scd_order_source
       !--------------------------------------------------------------------
    end subroutine scd_order_source_m1_plus_m2
 !=============================================================================
+! set all fields for scd order source
+   subroutine set_scd_order_source_fields()
+      integer(ip), parameter :: step = 5_ip
+      integer(ip) :: i
+
+      do i=1,len_lin_m
+         call set_level(step,lin_m(i),psi4_lin_f)
+         call set_level(step,lin_m(i),psi3)
+         call set_level(step,lin_m(i),psi2)
+
+         call set_level(step,lin_m(i),la)
+         call set_level(step,lin_m(i),pi)
+         call set_level(step,lin_m(i),hmbmb)
+         call set_level(step,lin_m(i),hlmb)
+         call set_level(step,lin_m(i),muhll)
+
+         call set_thorn_prime(step,lin_m(i),psi4_lin_f)
+         call set_thorn_prime(step,lin_m(i),psi3)
+         call set_thorn_prime(step,lin_m(i),muhll)
+         call set_thorn_prime(step,lin_m(i),hlmb)
+
+         call set_edth_prime(step,lin_m(i),psi4_lin_f)
+
+         call set_edth(step,lin_m(i),psi3)
+         call set_edth(step,lin_m(i),hmbmb)
+         call set_edth(step,lin_m(i),hlmb)
+      end do
+   end subroutine set_scd_order_source_fields
+!=============================================================================
    subroutine scd_order_source_compute(m_ang, sf)
       integer(ip),            intent(in)    :: m_ang
       type(scd_order_source), intent(inout) :: sf
@@ -304,12 +321,11 @@ module mod_scd_order_source
       integer(ip) :: i, m1_ang, m2_ang 
  
       call scd_order_source_zero(m_ang,sf)
-
       !------------------------------------
       ! add up source term components:
       ! f^{(m_1)} g^{(m_2)} ~ S^{(m_1+m_2)} 
       !------------------------------------
-      do i=1,size(lin_m)
+      do i=1,len_lin_m
          m1_ang=lin_m(i)
          m2_ang=m_ang-m1_ang
          if ( (any(lin_m== m2_ang)) &

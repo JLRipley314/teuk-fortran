@@ -296,16 +296,30 @@ module mod_metric_recon
    subroutine step_all_fields_mix_m_ang(step, m_ang)
       integer(ip), intent(in) :: step, m_ang
       !-----------------------------------------------------------------------
-      call set_level(step,m_ang,   pi); call set_level(step,-m_ang,   pi)
-      call set_level(step,m_ang, psi2); call set_level(step,-m_ang, psi2)
-      call set_level(step,m_ang, hlmb); call set_level(step,-m_ang, hlmb)
-      call set_level(step,m_ang,hmbmb); call set_level(step,-m_ang,hmbmb)
+      call set_level(step,m_ang,   pi)
+      call set_level(step,m_ang, psi2)
+      call set_level(step,m_ang, hlmb)
+      call set_level(step,m_ang,hmbmb)
 
-      call set_edth(step,m_ang,   pi); call set_edth(step,-m_ang,   pi)
-      call set_edth(step,m_ang, hlmb); call set_edth(step,-m_ang, hlmb)
-      call set_edth(step,m_ang,hmbmb); call set_edth(step,-m_ang,hmbmb)
+      call set_edth(step,m_ang,   pi)
+      call set_edth(step,m_ang, hlmb)
+      call set_edth(step,m_ang,hmbmb)
 
-      call take_step(step,m_ang,muhll); call take_step(step,-m_ang,muhll)
+      call take_step(step,m_ang,muhll)
+
+      if (m_ang>0) then
+         call set_level(step,-m_ang,   pi)
+         call set_level(step,-m_ang, psi2)
+         call set_level(step,-m_ang, hlmb)
+         call set_level(step,-m_ang,hmbmb)
+
+         call set_edth(step,-m_ang,   pi)
+         call set_edth(step,-m_ang, hlmb)
+         call set_edth(step,-m_ang,hmbmb)
+
+         call take_step(step,-m_ang,muhll)
+      end if
+
    end subroutine step_all_fields_mix_m_ang
 !=============================================================================
 ! evolve +/- m angular number fields

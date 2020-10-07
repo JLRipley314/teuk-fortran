@@ -18,14 +18,14 @@ vpath %.f90 $(SRC)
 INCFFTW= /usr/include
 LIBFFTW= /lib/x86_64-linux-gnu
 #==========================================================================
-FC = ifort#gfortran#
+FC = gfortran#ifort#
 
-FFLAGS= -g -fmax-errors=5 -O2 
+FFLAGS= -g -fmax-errors=5 -O3 
 
 SYSLIB= -lfftw3 
 #==========================================================================
 ifeq ($(FC),gfortran)
-	FFLAGS+= -std=f2008 -Wall -Wextra -fimplicit-none \
+	FFLAGS+= -std=f2008 -Wall -Wextra -fimplicit-none -fopenmp \
 		 -ftree-vectorize -march=native \
 		 -J$(OBJDIR) 
 		#-fcheck=all  

@@ -5,7 +5,7 @@ module mod_initial_data
    use mod_cheb,   only: Rvec
    use mod_swal,   only: Yvec, swal
    use mod_params, only: &
-      dt, nx, ny, &
+      ZI, dt, nx, ny, &
       min_m, max_m, &
       lin_m, &
       spin=>psi_spin, &
@@ -25,8 +25,6 @@ module mod_initial_data
    private
 
    public :: set_initial_data
-
-   complex(rp), parameter :: ZI = (0.0_rp, 1.0_rp)
 !=============================================================================
 contains
 !=============================================================================
@@ -185,4 +183,3 @@ contains
    end subroutine set_initial_data
 !=============================================================================
 end module mod_initial_data
-

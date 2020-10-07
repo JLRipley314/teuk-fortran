@@ -92,10 +92,10 @@ contains
 !=============================================================================
 ! writes to one line, row by row
    subroutine write_array_1d_csv(fn, time, m_ang, arr)
-      character(*),              intent(in) :: fn
-      real(rp),                  intent(in) :: time
-      integer(ip),               intent(in) :: m_ang
-      complex(rp), dimension(:), intent(in) :: arr
+      character(*), intent(in) :: fn
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      complex(rp),  intent(in) :: arr(:)
 
       character(:), allocatable  :: mstr, fn_re, fn_im
       integer(ip) :: ubx, lbx 
@@ -171,10 +171,10 @@ contains
 !=============================================================================
 ! writes to one line, row by row
    subroutine write_array_2d_csv(fn, time, m_ang, arr)
-      character(*),                intent(in) :: fn
-      real(rp),                    intent(in) :: time
-      integer(ip),                 intent(in) :: m_ang
-      complex(rp), dimension(:,:), intent(in) :: arr
+      character(*), intent(in) :: fn
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      complex(rp),  intent(in) :: arr(:,:)
 
       character(:), allocatable  :: mstr, fn_re, fn_im
       integer(ip) :: ubx, uby, lbx, lby 

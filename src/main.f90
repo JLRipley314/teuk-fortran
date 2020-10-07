@@ -7,13 +7,14 @@ program main
 !=============================================================================
    use, intrinsic :: iso_fortran_env, only: stdout=>output_unit
 
-   use omp_lib
-
    use mod_prec
    use mod_params, only: &
+      read_params, &
       nt, dt, t_step_save, black_hole_mass, &
-      lin_m, lin_pos_m, scd_m, &
-      len_lin_m, len_lin_pos_m, len_scd_m, &
+      lin_m,     scd_m, &
+      lin_pos_m, &
+      len_lin_m, len_scd_m, &
+      len_lin_pos_m, &
       psi_spin, psi_boost, &
       metric_recon, scd_order, &
       scd_order_start_time
@@ -42,6 +43,7 @@ program main
       scd_order_source, &
       source, &
       scd_order_source_init, &
+      set_scd_order_source_fields, &
       scd_order_source_compute, &
       scd_order_source_shift_time_step
 
@@ -54,8 +56,11 @@ clean_memory: block
 !=============================================================================
 ! declare and initialize variables, fields, etc.
 !=============================================================================
-   integer(ip) :: i, t_step
+   integer(ip) :: m_i, t_step
    real(rp)    :: time
+!=============================================================================
+   write (*,*) "Reading in params"
+   call read_params()
 !=============================================================================
    write (*,*) "Initializing fields"   
 !-----------------------------------------------------------------------------
@@ -115,8 +120,8 @@ clean_memory: block
 !-----------------------------------------------------------------------------
    time = 0.0_rp
 
-   do i=1,len_lin_m
-      call set_initial_data(lin_m(i), psi4_lin_p, psi4_lin_q, psi4_lin_f)
+   do m_i=1,len_lin_m
+      call set_initial_data(m_i, psi4_lin_p, psi4_lin_q, psi4_lin_f)
    end do
    call write_level(time)
 !=============================================================================
@@ -127,100 +132,100 @@ clean_memory: block
    time_evolve: do t_step=1,nt
       time = t_step*dt
       !-----------------------------------------------------------------------
-      ! \Psi_4^{(1)} evolution 
+      ! linear field evolution
       !-----------------------------------------------------------------------
       !$OMP PARALLEL DO NUM_THREADS(len_lin_pos_m) IF(len_lin_pos_m>1)
-      pos_m_loop: do i=1,len_lin_pos_m
-         call teuk_time_step( lin_pos_m(i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
-         call teuk_time_step(-lin_pos_m(i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
-         !------------------------------------
-         ! low pass filter (in spectral space)
-         !------------------------------------
-         call cheb_filter(lin_pos_m(i),psi4_lin_p)
-         call cheb_filter(lin_pos_m(i),psi4_lin_q)
-         call cheb_filter(lin_pos_m(i),psi4_lin_f)
+      pos_m_loop: do m_i=1,len_lin_pos_m
+         !--------------------------------------------------------------------
+         ! \Psi_4^{(1)} evolution 
+         !--------------------------------------------------------------------
+         call teuk_time_step( lin_pos_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
 
-         call swal_filter(lin_pos_m(i),psi4_lin_p)
-         call swal_filter(lin_pos_m(i),psi4_lin_q)
-         call swal_filter(lin_pos_m(i),psi4_lin_f)
+         call cheb_filter(lin_pos_m(m_i),psi4_lin_p)
+         call cheb_filter(lin_pos_m(m_i),psi4_lin_q)
+         call cheb_filter(lin_pos_m(m_i),psi4_lin_f)
 
-         if (lin_pos_m(i)>0) then
-            call cheb_filter(-lin_pos_m(i),psi4_lin_p)
-            call cheb_filter(-lin_pos_m(i),psi4_lin_q)
-            call cheb_filter(-lin_pos_m(i),psi4_lin_f)
+         call swal_filter(lin_pos_m(m_i),psi4_lin_p)
+         call swal_filter(lin_pos_m(m_i),psi4_lin_q)
+         call swal_filter(lin_pos_m(m_i),psi4_lin_f)
 
-            call swal_filter(-lin_pos_m(i),psi4_lin_p)
-            call swal_filter(-lin_pos_m(i),psi4_lin_q)
-            call swal_filter(-lin_pos_m(i),psi4_lin_f)
+         if (lin_pos_m(m_i)>0) then
+            call teuk_time_step(-lin_pos_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
+
+            call cheb_filter(-lin_pos_m(m_i),psi4_lin_p)
+            call cheb_filter(-lin_pos_m(m_i),psi4_lin_q)
+            call cheb_filter(-lin_pos_m(m_i),psi4_lin_f)
+
+            call swal_filter(-lin_pos_m(m_i),psi4_lin_p)
+            call swal_filter(-lin_pos_m(m_i),psi4_lin_q)
+            call swal_filter(-lin_pos_m(m_i),psi4_lin_f)
          end if
-      !-----------------------------------------------------------------------
-      ! metric recon evolves +/- m_ang so only evolve m_ang>=0
-      !-----------------------------------------------------------------------
-         if (metric_recon) then 
+         !--------------------------------------------------------------------
+         ! metric recon evolves +/- m_ang so only evolve m_ang>=0
+         !--------------------------------------------------------------------
+         do_metric_recon: if (metric_recon) then
+            call metric_recon_time_step(lin_pos_m(m_i))
 
-            call metric_recon_time_step(lin_pos_m(i))
-            !------------------------------------
-            ! low pass filter (in spectral space)
-            !------------------------------------
-            call cheb_filter(lin_pos_m(i),psi3)
-            call cheb_filter(lin_pos_m(i),psi2)
-            call cheb_filter(lin_pos_m(i),la)
-            call cheb_filter(lin_pos_m(i),pi)
-            call cheb_filter(lin_pos_m(i),hmbmb)
-            call cheb_filter(lin_pos_m(i), hlmb)
-            call cheb_filter(lin_pos_m(i),muhll)
+            call cheb_filter(lin_pos_m(m_i),psi3)
+            call cheb_filter(lin_pos_m(m_i),psi2)
+            call cheb_filter(lin_pos_m(m_i),la)
+            call cheb_filter(lin_pos_m(m_i),pi)
+            call cheb_filter(lin_pos_m(m_i),hmbmb)
+            call cheb_filter(lin_pos_m(m_i), hlmb)
+            call cheb_filter(lin_pos_m(m_i),muhll)
 
-            call swal_filter(lin_pos_m(i),psi3)
-            call swal_filter(lin_pos_m(i),psi2)
-            call swal_filter(lin_pos_m(i),la)
-            call swal_filter(lin_pos_m(i),pi)
-            call swal_filter(lin_pos_m(i),hmbmb)
-            call swal_filter(lin_pos_m(i), hlmb)
-            call swal_filter(lin_pos_m(i),muhll)
+            call swal_filter(lin_pos_m(m_i),psi3)
+            call swal_filter(lin_pos_m(m_i),psi2)
+            call swal_filter(lin_pos_m(m_i),la)
+            call swal_filter(lin_pos_m(m_i),pi)
+            call swal_filter(lin_pos_m(m_i),hmbmb)
+            call swal_filter(lin_pos_m(m_i), hlmb)
+            call swal_filter(lin_pos_m(m_i),muhll)
 
-            if (lin_pos_m(i)>0) then
-               call cheb_filter(-lin_pos_m(i),psi3)
-               call cheb_filter(-lin_pos_m(i),psi2)
-               call cheb_filter(-lin_pos_m(i),la)
-               call cheb_filter(-lin_pos_m(i),pi)
-               call cheb_filter(-lin_pos_m(i),hmbmb)
-               call cheb_filter(-lin_pos_m(i), hlmb)
-               call cheb_filter(-lin_pos_m(i),muhll)
+            if (lin_pos_m(m_i)>0) then
+               call cheb_filter(-lin_pos_m(m_i),psi3)
+               call cheb_filter(-lin_pos_m(m_i),psi2)
+               call cheb_filter(-lin_pos_m(m_i),la)
+               call cheb_filter(-lin_pos_m(m_i),pi)
+               call cheb_filter(-lin_pos_m(m_i),hmbmb)
+               call cheb_filter(-lin_pos_m(m_i), hlmb)
+               call cheb_filter(-lin_pos_m(m_i),muhll)
 
-               call swal_filter(-lin_pos_m(i),psi3)
-               call swal_filter(-lin_pos_m(i),psi2)
-               call swal_filter(-lin_pos_m(i),la)
-               call swal_filter(-lin_pos_m(i),pi)
-               call swal_filter(-lin_pos_m(i),hmbmb)
-               call swal_filter(-lin_pos_m(i), hlmb)
-               call swal_filter(-lin_pos_m(i),muhll)
+               call swal_filter(-lin_pos_m(m_i),psi3)
+               call swal_filter(-lin_pos_m(m_i),psi2)
+               call swal_filter(-lin_pos_m(m_i),la)
+               call swal_filter(-lin_pos_m(m_i),pi)
+               call swal_filter(-lin_pos_m(m_i),hmbmb)
+               call swal_filter(-lin_pos_m(m_i), hlmb)
+               call swal_filter(-lin_pos_m(m_i),muhll)
             end if
-         end if
+         end if do_metric_recon
       end do pos_m_loop
       !$OMP END PARALLEL DO
       !-----------------------------------------------------------------------
       ! \Psi_4^{(2)} evolution 
       !-----------------------------------------------------------------------
       if (scd_order) then
-         do i=1,len_scd_m
+         call set_scd_order_source_fields()
+         do m_i=1,len_scd_m
 
-            call scd_order_source_compute(scd_m(i),source) 
+            call scd_order_source_compute(scd_m(m_i),source) 
 
          end do
          if (time>=scd_order_start_time) then
-            do i=1,len_scd_m
+            do m_i=1,len_scd_m
 
-               call teuk_time_step(scd_m(i),source,psi4_scd_p,psi4_scd_q,psi4_scd_f)
+               call teuk_time_step(scd_m(m_i),source,psi4_scd_p,psi4_scd_q,psi4_scd_f)
                !------------------------------------
                ! low pass filter (in spectral space)
                !------------------------------------
-               call cheb_filter(scd_m(i),psi4_scd_p)
-               call cheb_filter(scd_m(i),psi4_scd_q)
-               call cheb_filter(scd_m(i),psi4_scd_f)
+               call cheb_filter(scd_m(m_i),psi4_scd_p)
+               call cheb_filter(scd_m(m_i),psi4_scd_q)
+               call cheb_filter(scd_m(m_i),psi4_scd_f)
 
-               call swal_filter(scd_m(i),psi4_scd_p)
-               call swal_filter(scd_m(i),psi4_scd_q)
-               call swal_filter(scd_m(i),psi4_scd_f)
+               call swal_filter(scd_m(m_i),psi4_scd_p)
+               call swal_filter(scd_m(m_i),psi4_scd_q)
+               call swal_filter(scd_m(m_i),psi4_scd_f)
 
             end do
          end if
@@ -238,38 +243,38 @@ clean_memory: block
       !-----------------------------------------------------------------------
       ! shift time steps
       !-----------------------------------------------------------------------
-      do i=1,len_lin_m
+      do m_i=1,len_lin_m
 
-         call shift_time_step(lin_m(i),psi4_lin_p)
-         call shift_time_step(lin_m(i),psi4_lin_q)
-         call shift_time_step(lin_m(i),psi4_lin_f)
+         call shift_time_step(lin_m(m_i),psi4_lin_p)
+         call shift_time_step(lin_m(m_i),psi4_lin_q)
+         call shift_time_step(lin_m(m_i),psi4_lin_f)
 
       end do
 
       if (metric_recon) then
-         do i=1,len_lin_m
+         do m_i=1,len_lin_m
 
-            call shift_time_step(lin_m(i),psi3)
-            call shift_time_step(lin_m(i),psi2)
+            call shift_time_step(lin_m(m_i),psi3)
+            call shift_time_step(lin_m(m_i),psi2)
 
-            call shift_time_step(lin_m(i),la)
-            call shift_time_step(lin_m(i),pi)
+            call shift_time_step(lin_m(m_i),la)
+            call shift_time_step(lin_m(m_i),pi)
 
-            call shift_time_step(lin_m(i),hmbmb)
-            call shift_time_step(lin_m(i),hlmb)
-            call shift_time_step(lin_m(i),muhll) 
+            call shift_time_step(lin_m(m_i),hmbmb)
+            call shift_time_step(lin_m(m_i),hlmb)
+            call shift_time_step(lin_m(m_i),muhll) 
 
          end do 
       end if
 
       if (scd_order) then
-         do i=1,len_scd_m
+         do m_i=1,len_scd_m
 
-            call shift_time_step(scd_m(i),psi4_scd_p)
-            call shift_time_step(scd_m(i),psi4_scd_q)
-            call shift_time_step(scd_m(i),psi4_scd_f)
+            call shift_time_step(scd_m(m_i),psi4_scd_p)
+            call shift_time_step(scd_m(m_i),psi4_scd_q)
+            call shift_time_step(scd_m(m_i),psi4_scd_f)
 
-            call scd_order_source_shift_time_step(scd_m(i),source)
+            call scd_order_source_shift_time_step(scd_m(m_i),source)
 
          end do
       end if

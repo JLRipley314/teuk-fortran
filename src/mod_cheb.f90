@@ -10,8 +10,8 @@ module mod_cheb
    private
 
    ! radial points
-   real(rp), dimension(nx), protected, public :: Rvec
-   real(rp), dimension(nx), protected, public :: Rarr
+   real(rp), allocatable, protected, public :: Rvec
+   real(rp), allocatable, protected, public :: Rarr
 
    ! subroutines
    public :: cheb_init, compute_DR, cheb_filter, cheb_test
