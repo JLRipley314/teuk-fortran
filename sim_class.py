@@ -162,6 +162,7 @@ class Sim:
          f.write('#SBATCH --nodes=1\n')
          f.write('#SBATCH --ntasks-per-node=1\n')
          f.write('#SBATCH --cpus-per-task={}\n'.format(self.num_threads))
+         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n')
          #------------
          ## executable
          #------------

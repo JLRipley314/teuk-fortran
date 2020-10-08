@@ -16,17 +16,15 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)	
-sim.black_hole_spin= round(0.7*sim.black_hole_mass,6)
+sim.black_hole_spin= round(0.999*sim.black_hole_mass,6)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(50) ## units of black hole mass
-sim.num_saved_times= int(200)
+sim.evolve_time= float(200) ## units of black hole mass
+sim.num_saved_times= int(600)
 #=============================================================================
-sim.nx= 64 ## num radial pts 
-sim.nl= 20 ## num angular values
+sim.nx= 180 ## num radial pts 
+sim.nl= 34 ## num angular values
 #=============================================================================
-## evolution and write: take boolean values 
-
 sim.metric_recon=     True
 sim.scd_order=        True
 sim.constrained_evo = True
@@ -36,14 +34,14 @@ sim.write_metric_recon_fields= False
 sim.write_scd_order_source=    True
 sim.write_coefs=               False
 #=============================================================================
-sim.computer= 'home'#'della'#
+sim.computer= 'della'#'home'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
 
-sim.walltime= '144:00:00' ## (hh:mm:ss)
-sim.memory=  '2048' ## MB 
-sim.email=  'lloydripley@gmail.com' ## for slurm notification
+sim.walltime= '36:00:00' ## (hh:mm:ss)
+sim.memory=   '2048' ## MB 
+sim.email=    'lloydripley@gmail.com' ## for slurm notification
 #=============================================================================
 ## we can only do metric reconstruction starting from psi4 for now.
 ## For pure first order Teukolsky evolution we can consider other
@@ -55,10 +53,6 @@ sim.email=  'lloydripley@gmail.com' ## for slurm notification
 sim.psi_spin=  int(-2)
 sim.psi_boost= int(-2)
 #=============================================================================
-## start multiple for second order metric evolution 
-
-sim.start_multiple= float(1.0)
-#=============================================================================
 ## Initial data
 #=============================================================================
 ## l_ang:                  initial data is a particular swal function
@@ -69,27 +63,31 @@ sim.start_multiple= float(1.0)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-sim.lin_m= [-2, 2]#, -3, 3]
+sim.lin_m= [-2, 2, -3, 3]
 #-----------------------------------------------------------------------------
-sim.l_ang= [2, 2]#, 3, 3]
+sim.l_ang= [ 2, 2,  3, 3]
 
-sim.initial_data_direction= "ii"#ii"
+sim.initial_data_direction= "iiii"
 
-sim.amp_re= [0.0, 0.4]#, 0.0, 0.1]
-sim.amp_im= [0.0, 0.0]#, 0.0, 0.0]
+sim.amp_re= [0.0, 4.0, 0.0, 2.0]
+sim.amp_im= [0.0, 0.0, 0.0, 0.0]
 
-sim.rl_0= [1.1, 1.1]#, 1.1, 1.1]
-sim.ru_0= [3.0, 3.0]#, 2.5, 2.5]
+sim.rl_0= [1.1, 1.1, 1.1, 1.1]
+sim.ru_0= [3.0, 3.0, 2.5, 2.5]
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [0, -4, 4]
+sim.scd_m= [0, -1, 1]
 #=============================================================================
 ## which m angular values to write to file
 
 sim.write_lin_m= sim.lin_m 
 
 sim.write_scd_m= sim.scd_m
+#=============================================================================
+## start multiple for second order metric evolution 
+
+sim.start_multiple= float(8.0)
 #=============================================================================
 if (sim.run_type == "basic_run"):
    sim.launch_run()
