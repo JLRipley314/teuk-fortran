@@ -286,32 +286,31 @@ module mod_scd_order_source
    end subroutine scd_order_source_m1_plus_m2
 !=============================================================================
 ! set all fields for scd order source
-   subroutine set_scd_order_source_fields()
+   subroutine set_scd_order_source_fields(m_ang)
+      integer(ip), intent(in)  :: m_ang
       integer(ip), parameter :: step = 5_ip
-      integer(ip) :: i
 
-      do i=1,len_lin_m
-         call set_level(step,lin_m(i),psi4_lin_f)
-         call set_level(step,lin_m(i),psi3)
-         call set_level(step,lin_m(i),psi2)
+      call set_level(step,m_ang,psi4_lin_f)
+      call set_level(step,m_ang,psi3)
+      call set_level(step,m_ang,psi2)
 
-         call set_level(step,lin_m(i),la)
-         call set_level(step,lin_m(i),pi)
-         call set_level(step,lin_m(i),hmbmb)
-         call set_level(step,lin_m(i),hlmb)
-         call set_level(step,lin_m(i),muhll)
+      call set_level(step,m_ang,la)
+      call set_level(step,m_ang,pi)
+      call set_level(step,m_ang,hmbmb)
+      call set_level(step,m_ang,hlmb)
+      call set_level(step,m_ang,muhll)
 
-         call set_thorn_prime(step,lin_m(i),psi4_lin_f)
-         call set_thorn_prime(step,lin_m(i),psi3)
-         call set_thorn_prime(step,lin_m(i),muhll)
-         call set_thorn_prime(step,lin_m(i),hlmb)
+      call set_thorn_prime(step,m_ang,psi4_lin_f)
+      call set_thorn_prime(step,m_ang,psi3)
+      call set_thorn_prime(step,m_ang,muhll)
+      call set_thorn_prime(step,m_ang,hlmb)
 
-         call set_edth_prime(step,lin_m(i),psi4_lin_f)
+      call set_edth_prime(step,m_ang,psi4_lin_f)
 
-         call set_edth(step,lin_m(i),psi3)
-         call set_edth(step,lin_m(i),hmbmb)
-         call set_edth(step,lin_m(i),hlmb)
-      end do
+      call set_edth(step,m_ang,psi3)
+      call set_edth(step,m_ang,hmbmb)
+      call set_edth(step,m_ang,hlmb)
+
    end subroutine set_scd_order_source_fields
 !=============================================================================
    subroutine scd_order_source_compute(m_ang, sf)

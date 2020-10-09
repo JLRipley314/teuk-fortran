@@ -26,7 +26,9 @@ program main
    use mod_teuk,         only: teuk_init, teuk_time_step
    use mod_initial_data, only: set_initial_data
    use mod_bkgrd_np,     only: bkgrd_np_init
-   use mod_metric_recon, only: metric_recon_time_step 
+   use mod_metric_recon, only: &
+      metric_recon_time_step_preserve_m_ang, &
+      metric_recon_time_step_mix_m_ang
    use mod_write_level,  only: write_level, write_diagnostics
 
    use mod_fields_list, only: &
@@ -131,90 +133,73 @@ clean_memory: block
 !-----------------------------------------------------------------------------
    time_evolve: do t_step=1,nt
       time = t_step*dt
-      !-----------------------------------------------------------------------
-      ! linear field evolution
-      !-----------------------------------------------------------------------
-      !$OMP PARALLEL DO NUM_THREADS(len_lin_pos_m) IF(len_lin_pos_m>1)
-      pos_m_loop: do m_i=1,len_lin_pos_m
-         !--------------------------------------------------------------------
-         ! \Psi_4^{(1)} evolution 
-         !--------------------------------------------------------------------
-         call teuk_time_step( lin_pos_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
+      !--------------------------------------------------------------------
+      ! \Psi_4^{(1)} evolution 
+      !--------------------------------------------------------------------
+      !$OMP PARALLEL DO NUM_THREADS(len_lin_m) IF(len_lin_m>1)
+      preserve_m_evo: do m_i=1,len_lin_m
+         call teuk_time_step(lin_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
 
-         call cheb_filter(lin_pos_m(m_i),psi4_lin_p)
-         call cheb_filter(lin_pos_m(m_i),psi4_lin_q)
-         call cheb_filter(lin_pos_m(m_i),psi4_lin_f)
+         call cheb_filter(lin_m(m_i),psi4_lin_p)
+         call cheb_filter(lin_m(m_i),psi4_lin_q)
+         call cheb_filter(lin_m(m_i),psi4_lin_f)
 
-         call swal_filter(lin_pos_m(m_i),psi4_lin_p)
-         call swal_filter(lin_pos_m(m_i),psi4_lin_q)
-         call swal_filter(lin_pos_m(m_i),psi4_lin_f)
+         call swal_filter(lin_m(m_i),psi4_lin_p)
+         call swal_filter(lin_m(m_i),psi4_lin_q)
+         call swal_filter(lin_m(m_i),psi4_lin_f)
+      !--------------------------------------------------------------------
+      ! metric recon evolves +/- m_ang so only evolve m_ang>=0
+      !--------------------------------------------------------------------
+         if (metric_recon) then
+            call metric_recon_time_step_preserve_m_ang(lin_m(m_i))
 
-         if (lin_pos_m(m_i)>0) then
-            call teuk_time_step(-lin_pos_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
+            call cheb_filter(lin_m(m_i),psi3)
+            call cheb_filter(lin_m(m_i),psi2)
+            call cheb_filter(lin_m(m_i),la)
+            call cheb_filter(lin_m(m_i),pi)
+            call cheb_filter(lin_m(m_i),hmbmb)
+            call cheb_filter(lin_m(m_i),hlmb)
 
-            call cheb_filter(-lin_pos_m(m_i),psi4_lin_p)
-            call cheb_filter(-lin_pos_m(m_i),psi4_lin_q)
-            call cheb_filter(-lin_pos_m(m_i),psi4_lin_f)
-
-            call swal_filter(-lin_pos_m(m_i),psi4_lin_p)
-            call swal_filter(-lin_pos_m(m_i),psi4_lin_q)
-            call swal_filter(-lin_pos_m(m_i),psi4_lin_f)
+            call swal_filter(lin_m(m_i),psi3)
+            call swal_filter(lin_m(m_i),psi2)
+            call swal_filter(lin_m(m_i),la)
+            call swal_filter(lin_m(m_i),pi)
+            call swal_filter(lin_m(m_i),hmbmb)
+            call swal_filter(lin_m(m_i),hlmb)
          end if
-         !--------------------------------------------------------------------
-         ! metric recon evolves +/- m_ang so only evolve m_ang>=0
-         !--------------------------------------------------------------------
-         do_metric_recon: if (metric_recon) then
-            call metric_recon_time_step(lin_pos_m(m_i))
+      end do preserve_m_evo
+      !$OMP END PARALLEL DO
 
-            call cheb_filter(lin_pos_m(m_i),psi3)
-            call cheb_filter(lin_pos_m(m_i),psi2)
-            call cheb_filter(lin_pos_m(m_i),la)
-            call cheb_filter(lin_pos_m(m_i),pi)
-            call cheb_filter(lin_pos_m(m_i),hmbmb)
-            call cheb_filter(lin_pos_m(m_i), hlmb)
-            call cheb_filter(lin_pos_m(m_i),muhll)
+      if (metric_recon) then
+         !$OMP PARALLEL DO NUM_THREADS(len_lin_pos_m) IF(len_lin_pos_m>1)
+         mix_m_evo: do m_i=1,len_lin_pos_m
+            call metric_recon_time_step_mix_m_ang(lin_pos_m(m_i))
 
-            call swal_filter(lin_pos_m(m_i),psi3)
-            call swal_filter(lin_pos_m(m_i),psi2)
-            call swal_filter(lin_pos_m(m_i),la)
-            call swal_filter(lin_pos_m(m_i),pi)
-            call swal_filter(lin_pos_m(m_i),hmbmb)
-            call swal_filter(lin_pos_m(m_i), hlmb)
-            call swal_filter(lin_pos_m(m_i),muhll)
+            call cheb_filter( lin_pos_m(m_i),muhll)
+            call swal_filter( lin_pos_m(m_i),muhll)
 
             if (lin_pos_m(m_i)>0) then
-               call cheb_filter(-lin_pos_m(m_i),psi3)
-               call cheb_filter(-lin_pos_m(m_i),psi2)
-               call cheb_filter(-lin_pos_m(m_i),la)
-               call cheb_filter(-lin_pos_m(m_i),pi)
-               call cheb_filter(-lin_pos_m(m_i),hmbmb)
-               call cheb_filter(-lin_pos_m(m_i), hlmb)
                call cheb_filter(-lin_pos_m(m_i),muhll)
-
-               call swal_filter(-lin_pos_m(m_i),psi3)
-               call swal_filter(-lin_pos_m(m_i),psi2)
-               call swal_filter(-lin_pos_m(m_i),la)
-               call swal_filter(-lin_pos_m(m_i),pi)
-               call swal_filter(-lin_pos_m(m_i),hmbmb)
-               call swal_filter(-lin_pos_m(m_i), hlmb)
                call swal_filter(-lin_pos_m(m_i),muhll)
             end if
-         end if do_metric_recon
-      end do pos_m_loop
-      !$OMP END PARALLEL DO
+         end do mix_m_evo 
+         !$OMP END PARALLEL DO
+      end if
       !-----------------------------------------------------------------------
       ! \Psi_4^{(2)} evolution 
       !-----------------------------------------------------------------------
       if (scd_order) then
-         call set_scd_order_source_fields()
-         do m_i=1,len_scd_m
 
-            call scd_order_source_compute(scd_m(m_i),source) 
-
+         !$OMP PARALLEL DO NUM_THREADS(len_lin_m) IF(len_lin_m>1)
+         do m_i=1,len_lin_m
+            call set_scd_order_source_fields(lin_m(m_i))
          end do
-         if (time>=scd_order_start_time) then
-            do m_i=1,len_scd_m
+         !$OMP END PARALLEL DO
 
+         !$OMP PARALLEL DO NUM_THREADS(len_scd_m) IF(len_scd_m>1)
+         do m_i=1,len_scd_m
+            call scd_order_source_compute(scd_m(m_i),source) 
+            if (time>=scd_order_start_time) then
                call teuk_time_step(scd_m(m_i),source,psi4_scd_p,psi4_scd_q,psi4_scd_f)
                !------------------------------------
                ! low pass filter (in spectral space)
@@ -226,9 +211,10 @@ clean_memory: block
                call swal_filter(scd_m(m_i),psi4_scd_p)
                call swal_filter(scd_m(m_i),psi4_scd_q)
                call swal_filter(scd_m(m_i),psi4_scd_f)
+            end if
+         end do
+         !$OMP END PARALLEL DO
 
-            end do
-         end if
       end if
       !-----------------------------------------------------------------------
       ! save to file 
@@ -236,24 +222,19 @@ clean_memory: block
       call write_diagnostics(time / black_hole_mass)
 
       if (mod(t_step,t_step_save)==0) then
-
          call write_level(time / black_hole_mass)
-
       end if
       !-----------------------------------------------------------------------
       ! shift time steps
       !-----------------------------------------------------------------------
       do m_i=1,len_lin_m
-
          call shift_time_step(lin_m(m_i),psi4_lin_p)
          call shift_time_step(lin_m(m_i),psi4_lin_q)
          call shift_time_step(lin_m(m_i),psi4_lin_f)
-
       end do
 
       if (metric_recon) then
          do m_i=1,len_lin_m
-
             call shift_time_step(lin_m(m_i),psi3)
             call shift_time_step(lin_m(m_i),psi2)
 
@@ -263,22 +244,18 @@ clean_memory: block
             call shift_time_step(lin_m(m_i),hmbmb)
             call shift_time_step(lin_m(m_i),hlmb)
             call shift_time_step(lin_m(m_i),muhll) 
-
          end do 
       end if
 
       if (scd_order) then
          do m_i=1,len_scd_m
-
             call shift_time_step(scd_m(m_i),psi4_scd_p)
             call shift_time_step(scd_m(m_i),psi4_scd_q)
             call shift_time_step(scd_m(m_i),psi4_scd_f)
 
             call scd_order_source_shift_time_step(scd_m(m_i),source)
-
          end do
       end if
-
    end do time_evolve
 !=============================================================================
 end block clean_memory

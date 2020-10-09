@@ -25,7 +25,10 @@ module mod_metric_recon
    implicit none
    private
 
-   public :: metric_recon_time_step, metric_recon_indep_res
+   public :: &
+      metric_recon_time_step_preserve_m_ang, &
+      metric_recon_time_step_mix_m_ang, &
+      metric_recon_indep_res
 !=============================================================================
    contains
 !=============================================================================
@@ -305,8 +308,6 @@ module mod_metric_recon
       call set_edth(step,m_ang, hlmb)
       call set_edth(step,m_ang,hmbmb)
 
-      call take_step(step,m_ang,muhll)
-
       if (m_ang>0) then
          call set_level(step,-m_ang,   pi)
          call set_level(step,-m_ang, psi2)
@@ -317,14 +318,17 @@ module mod_metric_recon
          call set_edth(step,-m_ang, hlmb)
          call set_edth(step,-m_ang,hmbmb)
 
+         call take_step(step, m_ang,muhll)
          call take_step(step,-m_ang,muhll)
+      else
+         call take_step(step, m_ang,muhll)
       end if
 
    end subroutine step_all_fields_mix_m_ang
 !=============================================================================
 ! evolve +/- m angular number fields
 !=============================================================================
-   subroutine metric_recon_time_step(m_ang)
+   subroutine metric_recon_time_step_preserve_m_ang(m_ang)
       integer(ip), intent(in) :: m_ang
 
       call step_all_fields_preserve_m_ang(1_ip,m_ang);
@@ -333,13 +337,10 @@ module mod_metric_recon
       call step_all_fields_preserve_m_ang(4_ip,m_ang);
       call step_all_fields_preserve_m_ang(5_ip,m_ang);
 
-      if (m_ang>0) then
-         call step_all_fields_preserve_m_ang(1_ip,-m_ang);
-         call step_all_fields_preserve_m_ang(2_ip,-m_ang);
-         call step_all_fields_preserve_m_ang(3_ip,-m_ang);
-         call step_all_fields_preserve_m_ang(4_ip,-m_ang);
-         call step_all_fields_preserve_m_ang(5_ip,-m_ang);
-      end if
+   end subroutine metric_recon_time_step_preserve_m_ang
+!=============================================================================
+   subroutine metric_recon_time_step_mix_m_ang(m_ang)
+      integer(ip), intent(in) :: m_ang
 
       call step_all_fields_mix_m_ang(1_ip,m_ang);
       call step_all_fields_mix_m_ang(2_ip,m_ang);
@@ -347,7 +348,7 @@ module mod_metric_recon
       call step_all_fields_mix_m_ang(4_ip,m_ang);
       call step_all_fields_mix_m_ang(5_ip,m_ang);
 
-   end subroutine metric_recon_time_step
+   end subroutine metric_recon_time_step_mix_m_ang
 !=============================================================================
    subroutine metric_recon_indep_res(m_ang)
       integer(ip), intent(in) :: m_ang
