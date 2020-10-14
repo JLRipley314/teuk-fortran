@@ -171,10 +171,10 @@ class Sim:
             run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
          f.write('\n'+run_str)
 
-         shutil.copyfile(
-         '{}/run.slurm'.format(self.home_dir),
-         '{}/run.slurm'.format(self.output_dir)
-         )
+      shutil.copyfile(
+      '{}/run.slurm'.format(self.home_dir),
+      '{}/run.slurm'.format(self.output_dir)
+      )
 #=============================================================================
    def compile(self)->None:
       subprocess.call('make '+self.bin_name,shell=True)
