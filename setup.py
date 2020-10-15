@@ -16,11 +16,10 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)	
-#sim.black_hole_spin= round(0.9998*sim.black_hole_mass,16)
 sim.black_hole_spin= round(0.998*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(200) ## units of black hole mass
+sim.evolve_time= float(300) ## units of black hole mass
 sim.num_saved_times= int(400)
 #=============================================================================
 sim.nx= 180 ## num radial pts 
@@ -34,6 +33,7 @@ sim.write_indep_res=           True
 sim.write_metric_recon_fields= False
 sim.write_scd_order_source=    False
 sim.write_coefs=               False
+sim.write_coefs_swal=          False
 #=============================================================================
 sim.computer= 'della'#'home'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
@@ -64,21 +64,18 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-sim.lin_m= [-2, 2, -3, 3]
-#-----------------------------------------------------------------------------
-sim.l_ang= [ 2, 2,  3, 3]
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5   ]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5   ]
+sim.amp_re= [ 0.0,  0.1,  0.0,  0.1,  0.0,  0.1,  0.0,  0.1 ]
+sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 ]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0 , 3.0 , 3.0 , 3.0 , 3.0,  3.0 , 3.0 ]
 
-sim.initial_data_direction= "iiii"
-
-sim.amp_re= [ 0.0, 0.1, 0.0, 0.1]
-sim.amp_im= [ 0.0, 0.0, 0.0, 0.0]
-
-sim.rl_0= [1.01, 1.01, 1.01, 1.01]
-sim.ru_0= [3.0 , 3.0 , 3.0 , 3.0 ]
+sim.initial_data_direction= "iiiiiiii"
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [0, 1, 4, 5]
+sim.scd_m= [0, 1, 2, 3, 4, 5]
 #=============================================================================
 ## which m angular values to write to file
 

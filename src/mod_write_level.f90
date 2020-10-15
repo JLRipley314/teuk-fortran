@@ -26,7 +26,7 @@ module mod_write_level
       metric_recon, scd_order, &
       write_metric_recon_fields, &
       write_indep_res, write_scd_order_source, &
-      write_coefs, constrained_evo
+      write_coefs, write_coefs_swal, constrained_evo
 
    use mod_fields_list, only: &
       psi4_lin_p, psi4_lin_q, psi4_lin_f, &
@@ -203,6 +203,42 @@ contains
                   time, &
                   write_scd_m(i), &
                   psi4_scd_f%coefs_both(:,:,write_scd_m(i)) &
+               )
+            end do 
+         end if
+         !--------------------------------------------------------------------
+      end if
+      !-----------------------------------------------------------------------
+      if (write_coefs_swal) then
+         !--------------------------------------------------------------------
+         do i=1,len_write_lin_m
+            call swal_real_to_coef( &
+               psi4_lin_f%spin, &
+               write_lin_m(i), &
+               psi4_lin_f%np1, &
+               psi4_lin_f%coefs_swal &
+            )
+            call write_csv( &
+               "swal_coefs_"//psi4_lin_f%fname, &
+               time, &
+               write_lin_m(i), &
+               psi4_lin_f%coefs_swal(:,:,write_lin_m(i)) &
+            )
+         end do 
+         !--------------------------------------------------------------------
+         if (scd_order) then
+            do i=1,len_write_scd_m
+               call swal_real_to_coef( &
+                  psi4_scd_f%spin, &
+                  write_scd_m(i), &
+                  psi4_scd_f%np1, &
+                  psi4_scd_f%coefs_swal &
+               )
+               call write_csv( &
+                  "swal_coefs_"//psi4_scd_f%fname, &
+                  time, &
+                  write_scd_m(i), &
+                  psi4_scd_f%coefs_swal(:,:,write_scd_m(i)) &
                )
             end do 
          end if

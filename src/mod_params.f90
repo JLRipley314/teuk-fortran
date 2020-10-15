@@ -24,6 +24,7 @@ module mod_params
    logical, protected :: write_metric_recon_fields
    logical, protected :: write_scd_order_source
    logical, protected :: write_coefs
+   logical, protected :: write_coefs_swal
 
    integer(ip), protected :: nx
    integer(ip), protected :: nl
@@ -237,6 +238,9 @@ contains
                !--------------------------------------------------------------
                case ('write_coefs')
                   call read_param(label,buffer,write_coefs)
+               !--------------------------------------------------------------
+               case ('write_coefs_swal')
+                  call read_param(label,buffer,write_coefs_swal)
 
                !--------------------------------------------------------------
                case ('nx')
