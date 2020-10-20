@@ -10,6 +10,7 @@ program main
    use mod_prec
    use mod_params, only: &
       read_params, &
+      sparse_save, &
       nt, dt, t_step_save, black_hole_mass, &
       lin_m,     scd_m, &
       lin_pos_m, &
@@ -29,7 +30,7 @@ program main
    use mod_metric_recon, only: &
       metric_recon_time_step_preserve_m_ang, &
       metric_recon_time_step_mix_m_ang
-   use mod_write_level,  only: write_level, write_diagnostics
+   use mod_write_level,  only: write_out, write_level, write_diagnostics
 
    use mod_fields_list, only: &
       psi4_lin_p, psi4_lin_q, psi4_lin_f, &
@@ -219,10 +220,14 @@ clean_memory: block
       !-----------------------------------------------------------------------
       ! save to file 
       !-----------------------------------------------------------------------
-      call write_diagnostics(time / black_hole_mass)
+      call write_out(time / black_hole_mass)
 
       if (mod(t_step,t_step_save)==0) then
-         call write_level(time / black_hole_mass)
+         if (sparse_save) then
+            call write_diagnostics(time / black_hole_mass)
+         else
+            call write_level(      time / black_hole_mass)
+         end if
       end if
       !-----------------------------------------------------------------------
       ! shift time steps

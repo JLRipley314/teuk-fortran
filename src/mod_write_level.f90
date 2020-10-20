@@ -11,7 +11,7 @@ module mod_write_level
 
    use mod_params, only: nx, ny 
 
-   use mod_io, only: write_csv, write_horizon_or_scriplus_csv
+   use mod_io, only: write_csv, write_horizon_or_scriplus_csv, write_norm_csv
 
    use mod_cheb, only: cheb_real_to_coef
    use mod_swal, only: swal_real_to_coef
@@ -43,9 +43,15 @@ module mod_write_level
    implicit none
    private
 
-   public :: write_level, write_diagnostics
+   public :: write_out, write_diagnostics, write_level 
 !=============================================================================
 contains
+!=============================================================================
+   subroutine write_out(time)
+      real(rp), intent(in) :: time
+
+      write(stdout,'(e14.6)',advance='no') time
+   end subroutine write_out
 !=============================================================================
    subroutine write_diagnostics(time)
       real(rp), intent(in) :: time
@@ -59,22 +65,32 @@ contains
       do i=1,len_write_lin_m
          call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi4_lin_f)
          call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi4_lin_f)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi3)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi3)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi2)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi2)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hmbmb)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hmbmb)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hlmb)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hlmb)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),muhll)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),muhll)
       end do
+
+      !-----------------------------------------------------------------------
+      if (write_metric_recon_fields) then
+         do i=1,len_write_lin_m
+            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi3)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi3)
+
+            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi2)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi2)
+
+            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hmbmb)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hmbmb)
+
+            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hlmb)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hlmb)
+
+            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),muhll)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),muhll)
+
+            call write_norm_csv(time,write_lin_m(i),res_bianchi3)
+            call write_norm_csv(time,write_lin_m(i),res_bianchi2)
+            call write_norm_csv(time,write_lin_m(i),res_hll)
+         end do
+      end if
+      !-----------------------------------------------------------------------
 
       do i=1,len_write_scd_m
 !         call write_horizon_or_scriplus_csv(time,"horizon",write_scd_m(i),source)

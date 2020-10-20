@@ -17,6 +17,7 @@ module mod_params
    real(rp), protected :: constraint_damping
    real(rp), protected :: scd_order_start_time
 
+   logical, protected :: sparse_save
    logical, protected :: metric_recon
    logical, protected :: scd_order
    logical, protected :: constrained_evo
@@ -217,6 +218,9 @@ contains
                case ('scd_order_start_time')
                   call read_param(label,buffer,scd_order_start_time)
 
+               !--------------------------------------------------------------
+               case ('sparse_save')
+                  call read_param(label,buffer,sparse_save)
                !--------------------------------------------------------------
                case ('metric_recon')
                   call read_param(label,buffer,metric_recon)

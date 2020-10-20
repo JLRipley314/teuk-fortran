@@ -10,7 +10,10 @@ module mod_io
    implicit none
 !=============================================================================
    private
-   public :: set_arr, write_csv, write_horizon_or_scriplus_csv
+   public :: set_arr, &
+      write_csv, &
+      write_horizon_or_scriplus_csv, &
+      write_norm_csv
 !=============================================================================
    interface set_arr
       module procedure set_arr_1d, set_arr_2d, set_arr_3d
@@ -19,8 +22,14 @@ module mod_io
    interface write_csv
       module procedure &
          write_field_csv, &
+         write_array_0d_real_csv, &
          write_array_1d_complex_csv, &
          write_array_2d_complex_csv
+   end interface
+
+   interface write_norm_csv
+      module procedure &
+         write_field_norm_csv
    end interface
 
    interface write_horizon_or_scriplus_csv
@@ -101,6 +110,48 @@ contains
          end do
       close(uf)
    end subroutine set_arr_3d
+!=============================================================================
+! writes to one line, row by row
+   subroutine write_array_0d_real_csv(fn, time, m_ang, val)
+      character(*), intent(in) :: fn
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      real(rp),     intent(in) :: val 
+
+      character(:), allocatable  :: mstr, fn_re
+      logical :: exists
+      integer(ip) :: ierror = 0
+      integer(ip) :: uf
+
+      ! inelegant int to str conversion
+      mstr = '     '
+      write (mstr,'(i5)') m_ang
+      mstr = trim(adjustl(mstr))
+      ! set the file fname to read from
+      fn_re = output_dir // '/' // fn // '_m' // mstr // '.csv'
+      !----------------------------------------------------------------------
+      ! save real part 
+      !----------------------------------------------------------------------
+      inquire(file=fn_re,exist=exists)
+      if (exists) then
+         open(newunit=uf,file=fn_re,status='old',position='append',action='write',iostat=ierror)
+      else
+         open(newunit=uf,file=fn_re,status='new',action='write',iostat=ierror) 
+      end if
+
+      write (uf,'(e14.6)'   ,advance='no',iostat=ierror) time
+      write (uf,'(e14.6,a1)',advance='no',iostat=ierror) val 
+      ! line break 
+      write (uf,*)
+
+      close(uf)
+
+      if (ierror/=0) then
+         write (*,*) "Error(read_arr): ierror=", ierror
+         write (*,*) "file = ", fn_re
+         stop
+      end if
+   end subroutine write_array_0d_real_csv
 !=============================================================================
 ! writes to one line, row by row
    subroutine write_array_1d_complex_csv(fn, time, m_ang, arr)
@@ -305,5 +356,29 @@ contains
       end select 
       !----------------------------------------------
    end subroutine write_field_horizon_or_scriplus_csv
+!=============================================================================
+! computes two norm
+!-----------------------------------------------------------------------------
+   subroutine write_field_norm_csv(time,m_ang,f)
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      type(field),  intent(in) :: f
+      !----------------------------------------------
+      character(:), allocatable :: fn
+      real(rp)                  :: norm
+
+      fn = "norm_"//f%fname 
+
+      norm = norm2( &
+         [  norm2(real( f%np1(:,:,m_ang),kind=rp)), &
+            norm2(aimag(f%np1(:,:,m_ang))) &
+         ] &
+      )
+
+      norm = norm / size(f%np1(:,:,m_ang))
+
+      call write_csv(fn, time, m_ang, norm)
+
+   end subroutine write_field_norm_csv
 !=============================================================================
 end module mod_io
