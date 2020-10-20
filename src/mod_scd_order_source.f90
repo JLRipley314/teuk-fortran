@@ -19,7 +19,6 @@ module mod_scd_order_source
       len_lin_m, lin_m, &
       cl=>compactification_length, &
       bhs=>black_hole_spin
-
 !=============================================================================
    implicit none
    private

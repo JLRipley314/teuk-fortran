@@ -11,7 +11,7 @@ module mod_write_level
 
    use mod_params, only: nx, ny 
 
-   use mod_io,   only: write_csv
+   use mod_io, only: write_csv, write_horizon_or_scriplus_csv
 
    use mod_cheb, only: cheb_real_to_coef
    use mod_swal, only: swal_real_to_coef
@@ -50,7 +50,6 @@ contains
    subroutine write_diagnostics(time)
       real(rp), intent(in) :: time
 
-      complex(rp) :: mean
       integer(ip) :: i 
       !-----------------------------------------------------------------------
       write(stdout,'(e14.6)',advance='no') time
@@ -58,31 +57,31 @@ contains
       ! field values at future null infinity and horizon
       !-----------------------------------------------------------------------
       do i=1,len_write_lin_m
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi4_lin_f)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi4_lin_f)
 
-         mean = sum(psi4_lin_f%np1(1,:,write_lin_m(i))) / ny
-         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
-         write(stdout,'(e14.6)',advance='no') aimag(mean)
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi3)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi3)
 
-         mean = sum(psi4_lin_f%np1(nx,:,write_lin_m(i))) / ny
-         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
-         write(stdout,'(e14.6)',advance='no') aimag(mean)
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi2)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi2)
 
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hmbmb)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hmbmb)
+
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hlmb)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hlmb)
+
+         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),muhll)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),muhll)
       end do
+
       do i=1,len_write_scd_m
+!         call write_horizon_or_scriplus_csv(time,"horizon",write_scd_m(i),source)
 
-         mean = sum(psi4_scd_f%np1(1,:,write_scd_m(i))) / ny
-         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
-         write(stdout,'(e14.6)',advance='no') aimag(mean)
-
-         mean = sum(psi4_scd_f%np1(nx,:,write_scd_m(i))) / ny
-         write(stdout,'(e14.6)',advance='no') real( mean,kind=rp)
-         write(stdout,'(e14.6)',advance='no') aimag(mean)
-
+         call write_horizon_or_scriplus_csv(time,"horizon", write_scd_m(i),psi4_scd_f)
+         call write_horizon_or_scriplus_csv(time,"scriplus",write_scd_m(i),psi4_scd_f)
       end do
-      !-----------------------------------------------------------------------
-      ! line break
-      !-----------------------------------------------------------------------
-      write(stdout,*)
 
    end subroutine write_diagnostics
 !=============================================================================
