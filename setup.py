@@ -16,14 +16,17 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)	
-sim.black_hole_spin= round(0.7*sim.black_hole_mass,16)
+sim.black_hole_spin= round(0.998*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(100) ## units of black hole mass
-sim.num_saved_times= int(400)
+sim.evolve_time= float(200) ## units of black hole mass
+sim.num_saved_times= int(2000)
 #=============================================================================
-sim.nx= 64 ## num radial pts 
-sim.nl= 16 ## num angular values
+sim.nx= 160 ## num radial pts 
+sim.nl= 30 ## num angular values
+#=============================================================================
+## whether or not only to save horizon/scriplus/norm or full field vals 
+sim.sparse_save= True
 #=============================================================================
 sim.metric_recon=     True
 sim.scd_order=        True
@@ -35,12 +38,9 @@ sim.write_scd_order_source=    True
 sim.write_coefs=               False
 sim.write_coefs_swal=          True
 #=============================================================================
-## whether or not only to save horizon/scriplus/norm or full field vals 
-sim.sparse_save= True
-#=============================================================================
 ## details of computer setup 
 
-sim.computer= 'home'#'della'#
+sim.computer= 'della'#'home'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
@@ -69,18 +69,26 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-sim.lin_m=  [-2,    2]#,   -3,    3,   -4,    4,   -5,    5   ]
-sim.l_ang=  [ 2,    2]#,    3,    3,    4,    4,    5,    5   ]
-sim.amp_re= [ 0.0,  0.1]#,  0.0,  0.1,  0.0,  0.1,  0.0,  0.1 ]
-sim.amp_im= [ 0.0,  0.0]#,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 ]
-sim.rl_0=   [ 1.01, 1.01]#, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01]
-sim.ru_0=   [ 3.0 , 3.0]# , 3.0 , 3.0 , 3.0 , 3.0,  3.0 , 3.0 ]
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5   ]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5   ]
+sim.amp_re= [ 0.0,  0.1,  0.0,  0.1,  0.0,  0.1,  0.0,  0.1 ]
+sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 ]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0 ]
+sim.initial_data_direction= "iiiiiiii"
 
-sim.initial_data_direction= "ii"#iiiiii"
+#sim.lin_m=  [-2,    2,  -5,    5   ]
+#sim.l_ang=  [ 2,    2,   5,    5   ]
+#sim.amp_re= [ 0.0,  0.1, 0.0,  0.1 ]
+#sim.amp_im= [ 0.0,  0.0, 0.0,  0.0 ]
+#sim.rl_0=   [ 1.01, 1.01,1.01, 1.01]
+#sim.ru_0=   [ 3.0 , 3.0, 3.0 , 3.0 ]
+#sim.initial_data_direction= "iiii"#
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [0, 4]
+sim.scd_m= [-5,-4,-3,-2,-1,0, 1, 2, 3, 4, 5]
+#sim.scd_m= [-7, -3, 3, 7]
 #=============================================================================
 ## which m angular values to write to file
 
@@ -97,9 +105,9 @@ if (sim.run_type == "basic_run"):
 #=============================================================================
 elif (sim.run_type == "res_study"):
    all_res= [
-      [180,34],
-      [190,38],
-      [200,42]
+      [160,30],
+      [170,34],
+      [180,38]
    ]
   
    for i in range(len(all_res)):
@@ -108,15 +116,12 @@ elif (sim.run_type == "res_study"):
       sim.launch_run()
 #=============================================================================
 elif (sim.run_type == "amp_study"):
-   all_amps= [
-      [ [ 0.0, 2.0,   0.0, 0.5     ], [ 0.0, 0.0, 0.0, 0.0 ]],
-      [ [ 0.0, 0.5,   0.0, 0.125   ], [ 0.0, 0.0, 0.0, 0.0 ]],
-      [ [ 0.0, 0.125, 0.0, 0.03125 ], [ 0.0, 0.0, 0.0, 0.0 ]]
-   ]
   
-   for i in range(len(all_amps)):
-      sim.amp_re= all_amps[i][0]
-      sim.amp_im= all_amps[i][1]
+   sim.launch_run()
+
+   for i in range(3):
+      sim.amp_re= [2.0*x for x in sim.amp_re]
+      sim.amp_im= [2.0*x for x in sim.amp_im]
       sim.launch_run()
 #=============================================================================
 elif (sim.run_type == "spin_ramp"):
