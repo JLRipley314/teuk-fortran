@@ -366,8 +366,6 @@ contains
 
       fn = "norm_"//f%fname 
 
-      write(*,*) f%np1(:,:,m_ang)
-
       norm = norm2(real(f%np1(:,:,m_ang),kind=rp)) + norm2(aimag(f%np1(:,:,m_ang)))
 
       norm = norm / sqrt(real(size(f%np1(:,:,m_ang)),kind=rp))
