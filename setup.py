@@ -38,7 +38,7 @@ sim.write_coefs_swal=          False
 ## whether or not only to save horizon/scriplus/norm or full field vals 
 sim.sparse_save= True
 #=============================================================================
-sim.computer= 'home'#'della'#
+sim.computer= 'della'#'home'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script

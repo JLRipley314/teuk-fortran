@@ -10,8 +10,9 @@ module mod_write_level
    use mod_prec
 
    use mod_params, only: nx, ny 
+   use mod_field,  only: field
 
-   use mod_io, only: write_csv, write_horizon_or_scriplus_csv, write_norm_csv
+   use mod_io, only: write_csv
 
    use mod_cheb, only: cheb_real_to_coef
    use mod_swal, only: swal_real_to_coef
@@ -44,8 +45,142 @@ module mod_write_level
    private
 
    public :: write_out, write_diagnostics, write_level 
+
+   interface write_horizon_or_scriplus
+      module procedure &
+         write_field_horizon_or_scriplus, &
+         write_source_horizon_or_scriplus
+   end interface
 !=============================================================================
 contains
+!=============================================================================
+   subroutine write_field_horizon_or_scriplus(time,location,m_ang,f)
+      real(rp),     intent(in) :: time
+      character(*), intent(in) :: location
+      integer(ip),  intent(in) :: m_ang
+      type(field),  intent(inout) :: f
+      !----------------------------------------------
+      character(:), allocatable :: fn
+      complex(rp),  allocatable :: vals(:)
+
+      fn = location//"_"//f%fname 
+
+      !------------------------------------------------
+      !------------------------------------------------
+      select case (location)
+      !------------------------------------------------
+      case ("horizon")
+         allocate(vals(lbound(f%np1,2):ubound(f%np1,2)))
+         vals = f%np1(nx,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("scriplus")
+         allocate(vals(lbound(f%np1,2):ubound(f%np1,2)))
+         vals = f%np1(1,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("coef_horizon")
+         allocate(vals(lbound(f%coefs_swal,2):ubound(f%coefs_swal,2)))
+         call swal_real_to_coef( &
+            f%spin, &
+            m_ang, &
+            f%np1, &
+            f%coefs_swal &
+         )
+         vals = f%coefs_swal(nx,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("coef_scriplus")
+         allocate(vals(lbound(f%coefs_swal,2):ubound(f%coefs_swal,2)))
+         call swal_real_to_coef( &
+            f%spin, &
+            m_ang, &
+            f%np1, &
+            f%coefs_swal &
+         )
+         vals = f%coefs_swal(1,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case default
+         ! do nothing
+      !------------------------------------------------
+      end select 
+      !------------------------------------------------
+      !----------------------------------------------
+   end subroutine write_field_horizon_or_scriplus
+!=============================================================================
+   subroutine write_source_horizon_or_scriplus(time,location,m_ang)
+      real(rp),     intent(in) :: time
+      character(*), intent(in) :: location
+      integer(ip),  intent(in) :: m_ang
+      !----------------------------------------------
+      character(:), allocatable :: fn
+      complex(rp),  allocatable :: vals(:)
+
+      fn = location//"_"//source%fname 
+
+      !------------------------------------------------
+      !------------------------------------------------
+      select case (location)
+      !------------------------------------------------
+      case ("horizon")
+         allocate(vals(lbound(source%np1,2):ubound(source%np1,2)))
+         vals = source%np1(nx,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("scriplus")
+         allocate(vals(lbound(source%np1,2):ubound(source%np1,2)))
+         vals = source%np1(1,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("coef_horizon")
+         allocate(vals(lbound(source%coefs_swal,2):ubound(source%coefs_swal,2)))
+         call swal_real_to_coef( &
+            source%spin, &
+            m_ang, &
+            source%np1, &
+            source%coefs_swal &
+         )
+         vals = source%coefs_swal(nx,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case ("coef_scriplus")
+         allocate(vals(lbound(source%coefs_swal,2):ubound(source%coefs_swal,2)))
+         call swal_real_to_coef( &
+            source%spin, &
+            m_ang, &
+            source%np1, &
+            source%coefs_swal &
+         )
+         vals = source%coefs_swal(1,:,m_ang) 
+         call write_csv(fn, time, m_ang, vals)
+      !------------------------------------------------
+      case default
+         ! do nothing
+      end select 
+      !------------------------------------------------
+      !------------------------------------------------
+   end subroutine write_source_horizon_or_scriplus
+!=============================================================================
+! computes two norm
+!-----------------------------------------------------------------------------
+   subroutine write_norm(time,m_ang,f)
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      type(field),  intent(in) :: f
+      !----------------------------------------------
+      character(:), allocatable :: fn
+      real(rp)                  :: norm
+
+      fn = "norm_"//f%fname 
+
+      norm = norm2(real(f%np1(:,:,m_ang),kind=rp)) + norm2(aimag(f%np1(:,:,m_ang)))
+
+      norm = norm / sqrt(real(size(f%np1(:,:,m_ang)),kind=rp))
+
+      call write_csv(fn, time, m_ang, norm)
+
+   end subroutine write_norm
 !=============================================================================
    subroutine write_out(time)
       real(rp), intent(in) :: time
@@ -64,47 +199,77 @@ contains
       ! field values at future null infinity and horizon
       !-----------------------------------------------------------------------
       do i=1,len_write_lin_m
-         call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi4_lin_f)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi4_lin_f)
+         call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),psi4_lin_f)
+         call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),psi4_lin_f)
       end do
       !-----------------------------------------------------------------------
       if (write_metric_recon_fields) then
          do i=1,len_write_lin_m
-            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi3)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi3)
+            call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),psi3)
+            call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),psi3)
 
-            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi2)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi2)
+            call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),psi2)
+            call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),psi2)
 
-            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hmbmb)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hmbmb)
+            call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),hmbmb)
+            call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),hmbmb)
 
-            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),hlmb)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),hlmb)
+            call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),hlmb)
+            call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),hlmb)
 
-            call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),muhll)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),muhll)
+            call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),muhll)
+            call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),muhll)
 
          end do
          if (write_indep_res) then
+
+            !$OMP PARALLEL DO NUM_THREADS(len_write_lin_m) IF(len_write_lin_m>1)
             do i=1,len_write_lin_m
                call metric_recon_indep_res(write_lin_m(i))
+            end do
+            !$OMP END PARALLEL DO
 
-               call write_norm_csv(time,write_lin_m(i),res_bianchi3)
-               call write_norm_csv(time,write_lin_m(i),res_bianchi2)
-               call write_norm_csv(time,write_lin_m(i),res_hll)
+            do i=1,len_write_lin_m
+               call write_norm(time,write_lin_m(i),res_bianchi3)
+               call write_norm(time,write_lin_m(i),res_bianchi2)
+               call write_norm(time,write_lin_m(i),res_hll)
             end do
          end if
       end if
       !-----------------------------------------------------------------------
-      !-----------------------------------------------------------------------
       if (scd_order) then
          do i=1,len_write_scd_m
-   !         call write_horizon_or_scriplus_csv(time,"horizon",write_scd_m(i),source)
-
-            call write_horizon_or_scriplus_csv(time,"horizon", write_scd_m(i),psi4_scd_f)
-            call write_horizon_or_scriplus_csv(time,"scriplus",write_scd_m(i),psi4_scd_f)
+            call write_horizon_or_scriplus(time,"horizon", write_scd_m(i),psi4_scd_f)
+            call write_horizon_or_scriplus(time,"scriplus",write_scd_m(i),psi4_scd_f)
          end do
+
+         if (write_scd_order_source) then 
+            do i=1,len_write_scd_m
+               call write_horizon_or_scriplus(time,"horizon",write_scd_m(i))
+            end do
+         end if
+      end if
+      !-----------------------------------------------------------------------
+      if (write_coefs_swal) then
+         !--------------------------------------------------------------------
+         do i=1,len_write_lin_m
+            call write_horizon_or_scriplus(time,"coef_horizon", write_lin_m(i),psi4_lin_f)
+            call write_horizon_or_scriplus(time,"coef_scriplus",write_lin_m(i),psi4_lin_f)
+         end do 
+         !--------------------------------------------------------------------
+         if (scd_order) then
+            do i=1,len_write_scd_m
+               call write_horizon_or_scriplus(time,"coef_horizon", write_scd_m(i),psi4_scd_f)
+               call write_horizon_or_scriplus(time,"coef_scriplus",write_scd_m(i),psi4_scd_f)
+            end do 
+         end if
+         !--------------------------------------------------------------------
+         if (write_scd_order_source) then 
+            do i=1,len_write_scd_m
+               call write_horizon_or_scriplus(time,"coef_horizon",write_scd_m(i))
+            end do
+         end if
+         !--------------------------------------------------------------------
       end if
 
    end subroutine write_diagnostics

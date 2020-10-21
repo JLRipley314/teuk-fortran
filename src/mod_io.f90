@@ -10,10 +10,7 @@ module mod_io
    implicit none
 !=============================================================================
    private
-   public :: set_arr, &
-      write_csv, &
-      write_horizon_or_scriplus_csv, &
-      write_norm_csv
+   public :: set_arr, write_csv
 !=============================================================================
    interface set_arr
       module procedure set_arr_1d, set_arr_2d, set_arr_3d
@@ -25,16 +22,6 @@ module mod_io
          write_array_0d_real_csv, &
          write_array_1d_complex_csv, &
          write_array_2d_complex_csv
-   end interface
-
-   interface write_norm_csv
-      module procedure &
-         write_field_norm_csv
-   end interface
-
-   interface write_horizon_or_scriplus_csv
-      module procedure &
-         write_field_horizon_or_scriplus_csv
    end interface
 !=============================================================================
 contains
@@ -323,55 +310,5 @@ contains
       call write_csv(f%fname, time, m_ang, f%np1(:,:,m_ang))
 
    end subroutine write_field_csv
-!=============================================================================
-   subroutine write_field_horizon_or_scriplus_csv(time,location,m_ang,f)
-      real(rp),     intent(in) :: time
-      character(*), intent(in) :: location
-      integer(ip),  intent(in) :: m_ang
-      type(field),  intent(in) :: f
-      !----------------------------------------------
-      character(:), allocatable :: fn
-      complex(rp),  allocatable :: vals(:)
-
-      fn = location//"_"//f%fname 
-
-      allocate(vals(1:ubound(f%np1,2)))
-      !----------------------------------------------
-      select case (location)
-
-      case ("horizon")
-         vals = f%np1(nx,:,m_ang) 
-         call write_csv(fn, time, m_ang, vals)
-
-      case ("scriplus")
-         vals = f%np1(1, :,m_ang) 
-         call write_csv(fn, time, m_ang, vals)
-
-      case default
-         ! do nothing
-
-      end select 
-      !----------------------------------------------
-   end subroutine write_field_horizon_or_scriplus_csv
-!=============================================================================
-! computes two norm
-!-----------------------------------------------------------------------------
-   subroutine write_field_norm_csv(time,m_ang,f)
-      real(rp),     intent(in) :: time
-      integer(ip),  intent(in) :: m_ang
-      type(field),  intent(in) :: f
-      !----------------------------------------------
-      character(:), allocatable :: fn
-      real(rp)                  :: norm
-
-      fn = "norm_"//f%fname 
-
-      norm = norm2(real(f%np1(:,:,m_ang),kind=rp)) + norm2(aimag(f%np1(:,:,m_ang)))
-
-      norm = norm / sqrt(real(size(f%np1(:,:,m_ang)),kind=rp))
-
-      call write_array_0d_real_csv(fn, time, m_ang, norm)
-
-   end subroutine write_field_norm_csv
 !=============================================================================
 end module mod_io

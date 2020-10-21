@@ -37,6 +37,7 @@ module mod_scd_order_source
    character(:), allocatable :: fname
 
    integer(ip) :: &
+      spin, &
       pre_edth_prime_spin,  pre_edth_prime_boost,  pre_edth_prime_falloff, &
       pre_thorn_prime_spin, pre_thorn_prime_boost, pre_thorn_prime_falloff
 
@@ -86,6 +87,8 @@ module mod_scd_order_source
       type(scd_order_source), intent(out) :: sf
 
       sf % fname = fname
+
+      sf % spin  = -2_ip
 
       sf % pre_thorn_prime_spin  = -2_ip
       sf % pre_thorn_prime_boost = -1_ip
