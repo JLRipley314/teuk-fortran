@@ -30,15 +30,17 @@ sim.scd_order=        True
 sim.constrained_evo = True
 
 sim.write_indep_res=           True
-sim.write_metric_recon_fields= True
-sim.write_scd_order_source=    False
+sim.write_metric_recon_fields= False
+sim.write_scd_order_source=    True
 sim.write_coefs=               False
-sim.write_coefs_swal=          False
+sim.write_coefs_swal=          True
 #=============================================================================
 ## whether or not only to save horizon/scriplus/norm or full field vals 
 sim.sparse_save= True
 #=============================================================================
-sim.computer= 'della'#'home'#
+## details of computer setup 
+
+sim.computer= 'home'#'della'#
 sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
