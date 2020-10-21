@@ -50,7 +50,8 @@ contains
    subroutine write_out(time)
       real(rp), intent(in) :: time
 
-      write(stdout,'(e14.6)',advance='no') time
+      write(stdout,'(e14.6)') time
+
    end subroutine write_out
 !=============================================================================
    subroutine write_diagnostics(time)
@@ -58,7 +59,7 @@ contains
 
       integer(ip) :: i 
       !-----------------------------------------------------------------------
-      write(stdout,'(e14.6)',advance='no') time
+      write(stdout,'(e14.6)') time
       !-----------------------------------------------------------------------
       ! field values at future null infinity and horizon
       !-----------------------------------------------------------------------
@@ -66,7 +67,6 @@ contains
          call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),psi4_lin_f)
          call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),psi4_lin_f)
       end do
-
       !-----------------------------------------------------------------------
       if (write_metric_recon_fields) then
          do i=1,len_write_lin_m
@@ -85,19 +85,27 @@ contains
             call write_horizon_or_scriplus_csv(time,"horizon", write_lin_m(i),muhll)
             call write_horizon_or_scriplus_csv(time,"scriplus",write_lin_m(i),muhll)
 
-            call write_norm_csv(time,write_lin_m(i),res_bianchi3)
-            call write_norm_csv(time,write_lin_m(i),res_bianchi2)
-            call write_norm_csv(time,write_lin_m(i),res_hll)
          end do
+         if (write_indep_res) then
+            do i=1,len_write_lin_m
+               call metric_recon_indep_res(write_lin_m(i))
+
+               call write_norm_csv(time,write_lin_m(i),res_bianchi3)
+               call write_norm_csv(time,write_lin_m(i),res_bianchi2)
+               call write_norm_csv(time,write_lin_m(i),res_hll)
+            end do
+         end if
       end if
       !-----------------------------------------------------------------------
+      !-----------------------------------------------------------------------
+      if (scd_order) then
+         do i=1,len_write_scd_m
+   !         call write_horizon_or_scriplus_csv(time,"horizon",write_scd_m(i),source)
 
-      do i=1,len_write_scd_m
-!         call write_horizon_or_scriplus_csv(time,"horizon",write_scd_m(i),source)
-
-         call write_horizon_or_scriplus_csv(time,"horizon", write_scd_m(i),psi4_scd_f)
-         call write_horizon_or_scriplus_csv(time,"scriplus",write_scd_m(i),psi4_scd_f)
-      end do
+            call write_horizon_or_scriplus_csv(time,"horizon", write_scd_m(i),psi4_scd_f)
+            call write_horizon_or_scriplus_csv(time,"scriplus",write_scd_m(i),psi4_scd_f)
+         end do
+      end if
 
    end subroutine write_diagnostics
 !=============================================================================

@@ -139,10 +139,7 @@ contains
          open(newunit=uf,file=fn_re,status='new',action='write',iostat=ierror) 
       end if
 
-      write (uf,'(e14.6)'   ,advance='no',iostat=ierror) time
-      write (uf,'(e14.6,a1)',advance='no',iostat=ierror) val 
-      ! line break 
-      write (uf,*)
+      write (uf,'(e20.12,e20.12)',iostat=ierror) time, val
 
       close(uf)
 
@@ -186,11 +183,11 @@ contains
          open(newunit=uf,file=fn_re,status='new',action='write',iostat=ierror) 
       end if
 
-      write (uf,'(e14.6,a1,i3,a1)',advance='no',iostat=ierror) &
+      write (uf,'(e20.12,a1,i3,a1)',advance='no',iostat=ierror) &
          time, ',', ubx-lbx+1, ','
 
       do i=lbx,ubx
-         write (uf,'(e14.6,a1)',advance='no',iostat=ierror) &
+         write (uf,'(e20.12,a1)',advance='no',iostat=ierror) &
             real(arr(i),kind=rp), ','
       end do
       ! line break 
@@ -213,11 +210,11 @@ contains
          open(newunit=uf,file=fn_im,status='new',action='write',iostat=ierror) 
       end if
 
-      write (uf,'(e14.6,a1,i3,a1)',advance='no',iostat=ierror) &
+      write (uf,'(e20.12,a1,i3,a1)',advance='no',iostat=ierror) &
          time, ',', ubx-lbx+1, ','
 
       do i=lbx,ubx
-         write (uf,'(e14.6,a1)',advance='no',iostat=ierror) &
+         write (uf,'(e20.12,a1)',advance='no',iostat=ierror) &
             aimag(arr(i)), ','
       end do
       ! line break      
@@ -268,12 +265,12 @@ contains
          open(newunit=uf,file=fn_re,status='new',action='write',iostat=ierror) 
       end if
 
-      write (uf,'(e14.6,a1,i3,a1,i3,a1)',advance='no',iostat=ierror) &
+      write (uf,'(e20.12,a1,i3,a1,i3,a1)',advance='no',iostat=ierror) &
          time, ',', ubx-lbx+1, ',', uby-lby+1, ','
 
       do i=lbx,ubx
       do j=lby,uby
-         write (uf,'(e14.6,a1)',advance='no',iostat=ierror) &
+         write (uf,'(e20.12,a1)',advance='no',iostat=ierror) &
             real(arr(i,j),kind=rp), ','
       end do
       end do
@@ -297,12 +294,12 @@ contains
          open(newunit=uf,file=fn_im,status='new',action='write',iostat=ierror) 
       end if
 
-      write (uf,'(e14.6,a1,i3,a1,i3,a1)',advance='no',iostat=ierror) &
+      write (uf,'(e20.12,a1,i3,a1,i3,a1)',advance='no',iostat=ierror) &
          time, ',', ubx-lbx+1, ',', uby-lby+1, ','
 
       do i=lbx,ubx
       do j=lby,uby
-         write (uf,'(e14.6,a1)',advance='no',iostat=ierror) &
+         write (uf,'(e20.12,a1)',advance='no',iostat=ierror) &
             aimag(arr(i,j)), ','
       end do
       end do
@@ -369,15 +366,13 @@ contains
 
       fn = "norm_"//f%fname 
 
-      norm = norm2( &
-         [  norm2(real( f%np1(:,:,m_ang),kind=rp)), &
-            norm2(aimag(f%np1(:,:,m_ang))) &
-         ] &
-      )
+      write(*,*) f%np1(:,:,m_ang)
 
-      norm = norm / size(f%np1(:,:,m_ang))
+      norm = norm2(real(f%np1(:,:,m_ang),kind=rp)) + norm2(aimag(f%np1(:,:,m_ang)))
 
-      call write_csv(fn, time, m_ang, norm)
+      norm = norm / sqrt(real(size(f%np1(:,:,m_ang)),kind=rp))
+
+      call write_array_0d_real_csv(fn, time, m_ang, norm)
 
    end subroutine write_field_norm_csv
 !=============================================================================

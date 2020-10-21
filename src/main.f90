@@ -30,7 +30,7 @@ program main
    use mod_metric_recon, only: &
       metric_recon_time_step_preserve_m_ang, &
       metric_recon_time_step_mix_m_ang
-   use mod_write_level,  only: write_out, write_level, write_diagnostics
+   use mod_write_level,  only: write_level, write_diagnostics
 
    use mod_fields_list, only: &
       psi4_lin_p, psi4_lin_q, psi4_lin_f, &
@@ -126,7 +126,12 @@ clean_memory: block
    do m_i=1,len_lin_m
       call set_initial_data(m_i, psi4_lin_p, psi4_lin_q, psi4_lin_f)
    end do
-   call write_level(time)
+
+   if (sparse_save) then
+      call write_diagnostics(time / black_hole_mass)
+   else
+      call write_level(      time / black_hole_mass)
+   end if
 !=============================================================================
 ! integrate in time 
 !=============================================================================
@@ -220,8 +225,6 @@ clean_memory: block
       !-----------------------------------------------------------------------
       ! save to file 
       !-----------------------------------------------------------------------
-      call write_out(time / black_hole_mass)
-
       if (mod(t_step,t_step_save)==0) then
          if (sparse_save) then
             call write_diagnostics(time / black_hole_mass)
