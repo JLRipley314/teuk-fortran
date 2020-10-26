@@ -4,12 +4,15 @@
 module mod_field
 !=============================================================================
    use mod_prec
-   use mod_params, only: nx, ny, max_l, min_m, max_m
+   use mod_params, only: nx, ny, max_l, min_m, max_m, dt
    implicit none
 !=============================================================================
    private
 
-   public :: field, set_field, set_level, set_DT, shift_time_step
+   public :: field, &
+      set_field, set_level, set_DT, &
+      shift_time_step, &
+      time_integrate_field
 !=============================================================================
 ! field type:
 ! always have two levels: n, np1 and intermediate levels for RK4 time
@@ -173,5 +176,40 @@ contains
       f % n( :,:,m_ang) = f % np1(:,:,m_ang) 
       f % k1(:,:,m_ang) = f % k5( :,:,m_ang) 
    end subroutine shift_time_step
+!=============================================================================
+! RK4 time integrator: integrate psi4 in time to get \dot{h} at scri+ 
+! we assume that we have already evolve psi4 so no need to set fields
+!=============================================================================
+   subroutine time_integrate_field(m_ang, f, int_f) 
+      integer(ip), intent(in)    :: m_ang
+      type(field), intent(in)    :: f
+      type(field), intent(inout) ::int_f ! int_f :time integral of f 
+   !--------------------------------------------------------
+      int_f%k1(:,:,m_ang)= f%n(:,:,m_ang)
+      int_f%l2(:,:,m_ang)= int_f%n(:,:,m_ang)+0.5_rp*dt*int_f%n(:,:,m_ang)
+   !--------------------------------------------------------
+      int_f%k2(:,:,m_ang)= f%l2(:,:,m_ang)
+
+      int_f%l3(:,:,m_ang)= int_f%n(:,:,m_ang)+0.5_rp*dt*int_f%k2(:,:,m_ang)
+   !--------------------------------------------------------
+      int_f%k3(:,:,m_ang)= f%l3(:,:,m_ang)
+
+      int_f%l4(:,:,m_ang)= int_f%n(:,:,m_ang)+dt*int_f%k3(:,:,m_ang)
+   !--------------------------------------------------------
+      int_f%k4(:,:,m_ang) = f%l4(:,:,m_ang)
+
+      int_f%np1(:,:,m_ang)= int_f%n(:,:,m_ang) &
+      +  (dt/6.0_rp)*( &
+            int_f%k1(:,:,m_ang) &
+         +  2.0_rp*int_f%k2(:,:,m_ang) &
+         +  2.0_rp*int_f%k3(:,:,m_ang) &
+         +  int_f%k4(:,:,m_ang) &
+         )
+   !------------------------------------------------------------
+   ! want k5 for computing source term and independent residuals
+   !------------------------------------------------------------
+      int_f%k5(:,:,m_ang) = f%np1(:,:,m_ang)
+
+   end subroutine time_integrate_field
 !=============================================================================
 end module mod_field

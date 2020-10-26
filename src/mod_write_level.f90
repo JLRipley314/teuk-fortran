@@ -36,6 +36,9 @@ module mod_write_level
       psi4_scd_p, psi4_scd_q, psi4_scd_f, &
       res_scd_q, & 
 
+      psi4_integral_lin_f, &
+      psi4_integral_scd_f, &
+
       psi3, psi2, la, pi, muhll, hlmb, hmbmb, &
       res_bianchi3, res_bianchi2, res_hll
 
@@ -203,6 +206,7 @@ contains
       do i=1,len_write_lin_m
          call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),psi4_lin_f)
          call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),psi4_lin_f)
+         call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),psi4_integral_lin_f)
       end do
       !-----------------------------------------------------------------------
       if (write_metric_recon_fields) then
@@ -242,6 +246,7 @@ contains
          do i=1,len_write_scd_m
             call write_horizon_or_scriplus(time,"horizon", write_scd_m(i),psi4_scd_f)
             call write_horizon_or_scriplus(time,"scriplus",write_scd_m(i),psi4_scd_f)
+            call write_horizon_or_scriplus(time,"scriplus",write_scd_m(i),psi4_integral_scd_f)
          end do
 
          if (write_scd_order_source) then 
@@ -256,12 +261,14 @@ contains
          do i=1,len_write_lin_m
             call write_horizon_or_scriplus(time,"coef_horizon", write_lin_m(i),psi4_lin_f)
             call write_horizon_or_scriplus(time,"coef_scriplus",write_lin_m(i),psi4_lin_f)
+            call write_horizon_or_scriplus(time,"coef_scriplus",write_lin_m(i),psi4_integral_lin_f)
          end do 
          !--------------------------------------------------------------------
          if (scd_order) then
             do i=1,len_write_scd_m
                call write_horizon_or_scriplus(time,"coef_horizon", write_scd_m(i),psi4_scd_f)
                call write_horizon_or_scriplus(time,"coef_scriplus",write_scd_m(i),psi4_scd_f)
+               call write_horizon_or_scriplus(time,"coef_scriplus",write_scd_m(i),psi4_integral_scd_f)
             end do 
          end if
          !--------------------------------------------------------------------

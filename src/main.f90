@@ -20,7 +20,7 @@ program main
       metric_recon, scd_order, &
       scd_order_start_time
 
-   use mod_field,        only: set_field, shift_time_step
+   use mod_field,        only: set_field, shift_time_step, time_integrate_field
    use mod_cheb,         only: cheb_init, cheb_filter, cheb_test
    use mod_swal,         only: swal_init, swal_filter, swal_test_orthonormal
    use mod_ghp,          only: ghp_init
@@ -38,6 +38,9 @@ program main
 
       psi4_scd_p, psi4_scd_q, psi4_scd_f, &
       res_scd_q, & 
+
+      psi4_integral_lin_f, &
+      psi4_integral_scd_f, &
 
       psi3, psi2, la, pi, muhll, hlmb, hmbmb, &
       res_bianchi3, res_bianchi2, res_hll
@@ -73,10 +76,14 @@ clean_memory: block
    call set_field(fname="lin_q",spin=psi_spin,boost=psi_boost,falloff=2_ip,f=psi4_lin_q)
    call set_field(fname="lin_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_lin_f)
 
+   call set_field(fname="integral_lin_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integral_lin_f)
+
    if (scd_order) then
       call set_field(fname="scd_p",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_scd_p)
       call set_field(fname="scd_q",spin=psi_spin,boost=psi_boost,falloff=2_ip,f=psi4_scd_q)
       call set_field(fname="scd_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_scd_f)
+
+      call set_field(fname="integral_scd_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integral_scd_f)
    end if
 !-----------------------------------------------------------------------------
 ! metric reconstructed fields
@@ -145,7 +152,9 @@ clean_memory: block
       !$OMP PARALLEL DO NUM_THREADS(len_lin_m) IF(len_lin_m>1)
       preserve_m_evo: do m_i=1,len_lin_m
          call teuk_time_step(lin_m(m_i),psi4_lin_p,psi4_lin_q,psi4_lin_f)
-
+         !------------------------------------
+         ! low pass filter (in spectral space)
+         !------------------------------------
          call cheb_filter(lin_m(m_i),psi4_lin_p)
          call cheb_filter(lin_m(m_i),psi4_lin_q)
          call cheb_filter(lin_m(m_i),psi4_lin_f)
@@ -153,12 +162,16 @@ clean_memory: block
          call swal_filter(lin_m(m_i),psi4_lin_p)
          call swal_filter(lin_m(m_i),psi4_lin_q)
          call swal_filter(lin_m(m_i),psi4_lin_f)
+         !------------------------------------
+         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_integral_lin_f)
       !--------------------------------------------------------------------
       ! metric recon evolves +/- m_ang so only evolve m_ang>=0
       !--------------------------------------------------------------------
          if (metric_recon) then
             call metric_recon_time_step_preserve_m_ang(lin_m(m_i))
-
+            !------------------------------------
+            ! low pass filter (in spectral space)
+            !------------------------------------
             call cheb_filter(lin_m(m_i),psi3)
             call cheb_filter(lin_m(m_i),psi2)
             call cheb_filter(lin_m(m_i),la)
@@ -217,6 +230,8 @@ clean_memory: block
                call swal_filter(scd_m(m_i),psi4_scd_p)
                call swal_filter(scd_m(m_i),psi4_scd_q)
                call swal_filter(scd_m(m_i),psi4_scd_f)
+               !------------------------------------
+               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_integral_scd_f)
             end if
          end do
          !$OMP END PARALLEL DO

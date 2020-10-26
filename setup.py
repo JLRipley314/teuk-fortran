@@ -16,10 +16,10 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)	
-sim.black_hole_spin= round(0.998*sim.black_hole_mass,16)
+sim.black_hole_spin= round(0.999*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(200) ## units of black hole mass
+sim.evolve_time= float(300) ## units of black hole mass
 sim.num_saved_times= int(2000)
 #=============================================================================
 sim.nx= 160 ## num radial pts 
@@ -36,7 +36,7 @@ sim.write_indep_res=           True
 sim.write_metric_recon_fields= False
 sim.write_scd_order_source=    True
 sim.write_coefs=               False
-sim.write_coefs_swal=          True
+sim.write_coefs_swal=          False
 #=============================================================================
 ## details of computer setup 
 
@@ -45,7 +45,7 @@ sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
 
-sim.walltime= '48:00:00' ## (hh:mm:ss)
+sim.walltime= '71:00:00' ## (hh:mm:ss)
 sim.memory=   '2048' ## MB 
 sim.email=    'lloydripley@gmail.com' ## for slurm notification
 #=============================================================================
@@ -71,8 +71,8 @@ sim.psi_boost= int(-2)
 #=============================================================================
 sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5   ]
 sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5   ]
-sim.amp_re= [ 0.0,  0.1,  0.0,  0.1,  0.0,  0.1,  0.0,  0.1 ]
-sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 ]
+sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1 ]
+sim.amp_im= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1 ]
 sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01]
 sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0 ]
 sim.initial_data_direction= "iiiiiiii"
@@ -87,7 +87,7 @@ sim.initial_data_direction= "iiiiiiii"
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [-5,-4,-3,-2,-1,0, 1, 2, 3, 4, 5]
+sim.scd_m= [-7,-6,-5,-4,-3,-2,-1,0, 1, 2, 3, 4, 5, 6, 7]
 #sim.scd_m= [-7, -3, 3, 7]
 #=============================================================================
 ## which m angular values to write to file
