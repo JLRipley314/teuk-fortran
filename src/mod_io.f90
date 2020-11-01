@@ -20,6 +20,7 @@ module mod_io
       module procedure &
          write_field_csv, &
          write_array_0d_real_csv, &
+         write_array_1d_real_csv, &
          write_array_1d_complex_csv, &
          write_array_2d_complex_csv
    end interface
@@ -136,6 +137,54 @@ contains
          stop
       end if
    end subroutine write_array_0d_real_csv
+!=============================================================================
+! writes to one line, row by row
+   subroutine write_array_1d_real_csv(fn, time, m_ang, arr)
+      character(*), intent(in) :: fn
+      real(rp),     intent(in) :: time
+      integer(ip),  intent(in) :: m_ang
+      real(rp),     intent(in) :: arr(:)
+
+      character(:), allocatable  :: mstr, fn_re
+      integer(ip) :: ubx, lbx 
+      logical :: exists
+      integer(ip) :: i, ierror = 0
+      integer(ip) :: uf
+
+      lbx = lbound(arr,1)
+      ubx = ubound(arr,1)
+
+      ! inelegant int to str conversion
+      mstr = '     '
+      write (mstr,'(i5)') m_ang
+      mstr = trim(adjustl(mstr))
+      ! set the file fname to read from
+      fn_re = output_dir // '/' // fn // '_m' // mstr // '.csv'
+      !----------------------------------------------------------------------
+      inquire(file=fn_re,exist=exists)
+      if (exists) then
+         open(newunit=uf,file=fn_re,status='old',position='append',action='write',iostat=ierror)
+      else
+         open(newunit=uf,file=fn_re,status='new',action='write',iostat=ierror) 
+      end if
+
+      write (uf,'(e20.12,a1,i3,a1)',advance='no',iostat=ierror) &
+         time, ',', ubx-lbx+1, ','
+
+      do i=lbx,ubx
+         write (uf,'(e20.12,a1)',advance='no',iostat=ierror) arr(i), ','
+      end do
+      ! line break 
+      write (uf,*)
+
+      close(uf)
+
+      if (ierror/=0) then
+         write (*,*) "Error(read_arr): ierror=", ierror
+         write (*,*) "file = ", fn_re 
+         stop
+      end if
+   end subroutine write_array_1d_real_csv
 !=============================================================================
 ! writes to one line, row by row
    subroutine write_array_1d_complex_csv(fn, time, m_ang, arr)

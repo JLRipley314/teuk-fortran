@@ -177,9 +177,7 @@ contains
 
       fn = "norm_"//f%fname 
 
-      norm = &
-         norm2(real(f%np1(:,:,m_ang),kind=rp))**2 &
-      +  norm2(aimag(f%np1(:,:,m_ang)))**2
+      norm = sum(conjg(f%np1(:,:,m_ang))*f%np1(:,:,m_ang))
 
       norm = sqrt(norm / real(size(f%np1(:,:,m_ang)),kind=rp))
 
