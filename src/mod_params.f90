@@ -88,7 +88,8 @@ contains
       character(*), intent(in)    :: buffer
       logical,      intent(out)   :: val
 
-      read(buffer, *) val 
+      integer(ip) :: ios
+      read(buffer, *, iostat=ios) val
       print *, trim(label)//': ', val 
    end subroutine read_param_bool
 !------------------------------------------------------------------------------
@@ -97,7 +98,8 @@ contains
       character(*), intent(in)    :: buffer
       integer(ip),  intent(out)   :: val
 
-      read(buffer, *) val 
+      integer(ip) :: ios
+      read(buffer, *, iostat=ios) val
       print *, trim(label)//': ', val 
    end subroutine read_param_int
 !------------------------------------------------------------------------------
@@ -106,7 +108,8 @@ contains
       character(*), intent(in)    :: buffer
       real(rp),     intent(out)   :: val
 
-      read(buffer, *) val 
+      integer(ip) :: ios
+      read(buffer, *, iostat=ios) val
       print *, trim(label)//': ', val 
    end subroutine read_param_real
 !------------------------------------------------------------------------------
@@ -115,7 +118,8 @@ contains
       character(*), intent(in)    :: buffer
       complex(rp),  intent(out)   :: val
 
-      read(buffer, *) val
+      integer(ip) :: ios
+      read(buffer, *, iostat=ios) val
       print *, trim(label)//': ', val 
    end subroutine read_param_complex
 !------------------------------------------------------------------------------
@@ -125,9 +129,11 @@ contains
       integer(ip),               intent(in)    :: n
       integer(ip),  allocatable, intent(inout) :: val(:)
 
+      integer(ip) :: ios
+
       allocate(val(n))
 
-      read(buffer, *) val
+      read(buffer, *, iostat=ios) val
       print *, trim(label)//': ', val
    end subroutine read_param_int_vec
 !------------------------------------------------------------------------------
@@ -137,9 +143,11 @@ contains
       integer(ip),               intent(in)    :: n
       real(rp),     allocatable, intent(inout) :: val(:)
 
+      integer(ip) :: ios
+
       allocate(val(n))
 
-      read(buffer, *) val
+      read(buffer, *,iostat=ios) val
       print *, trim(label)//': ', val
    end subroutine read_param_real_vec
 !------------------------------------------------------------------------------
@@ -156,7 +164,7 @@ contains
    subroutine read_params()
 
       ! Input related variables
-      integer(ip), parameter :: cl = 200
+      integer(ip), parameter :: cl = 2000
       character(cl) :: buffer, label
       integer(ip)   :: pos
       integer(ip)   :: fh
@@ -341,7 +349,7 @@ contains
 
                !--------------------------------------------------------------
                case default
-                  print *, 'Skipping invalid label: ', label
+                  print *, 'Skipping invalid label: ', trim(label)
             end select param_select
          end if ios_ok
       end do read_lines

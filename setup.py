@@ -12,15 +12,16 @@ from sim_class import Sim
 args= sys.argv
 sim= Sim(args)
 #=============================================================================
-sim.bin_name= 'default.run'
+#sim.bin_name= 'default.run'
+sim.bin_name= 'test.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)	
-sim.black_hole_spin= round(1.0*sim.black_hole_mass,16)
+sim.black_hole_spin= round(0.99998*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(300) ## units of black hole mass
-sim.num_saved_times= int(2000)
+sim.evolve_time= float(400) ## units of black hole mass
+sim.num_saved_times= int(3000)
 #=============================================================================
 sim.nx= 160 ## num radial pts 
 sim.nl= 30 ## num angular values
@@ -45,7 +46,7 @@ sim.della_out_stem= '/tigress/jripley/tf-out/'
 
 ## for della cluster/slurm script
 
-sim.walltime= '71:00:00' ## (hh:mm:ss)
+sim.walltime= '72:00:00' ## (hh:mm:ss)
 sim.memory=   '2048' ## MB 
 sim.email=    'lloydripley@gmail.com' ## for slurm notification
 #=============================================================================
@@ -69,17 +70,17 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5   ]
-sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5   ]
-sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1 ]
-sim.amp_im= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1 ]
-sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01]
-sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0 ]
-sim.initial_data_direction= "iiiiiiii"
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
+sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.amp_im= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
+sim.initial_data_direction= "iiiiiiiiiiii"
 
 ## rescale for smaller amps
-sim.amp_re= [4.0*x for x in sim.amp_re]
-sim.amp_im= [4.0*x for x in sim.amp_im]
+#sim.amp_re= [4.0*x for x in sim.amp_re]
+#sim.amp_im= [4.0*x for x in sim.amp_im]
 
 #sim.lin_m=  [-2,    2,  -5,    5   ]
 #sim.l_ang=  [ 2,    2,   5,    5   ]
@@ -109,15 +110,34 @@ if (sim.run_type == "basic_run"):
 #=============================================================================
 elif (sim.run_type == "res_study"):
    all_res= [
-      [160,30],
-      [170,34],
-      [180,38]
+      [160,42],
+      [170,46],
+      [180,50]
    ]
   
    for i in range(len(all_res)):
       sim.nx= all_res[i][0]
       sim.nl= all_res[i][1]
       sim.launch_run()
+#=============================================================================
+elif (sim.run_type == "multiple"):
+   all_spins= [
+      round(0.9998  *sim.black_hole_mass,16),
+      round(0.99998 *sim.black_hole_mass,16),
+      round(0.999998*sim.black_hole_mass,16)
+   ]
+   all_res= [
+      [160,42],
+      [170,46],
+      [180,50]
+   ]
+ 
+   for j in range(len(all_spins)): 
+      sim.black_hole_spin= all_spins[j]
+      for i in range(len(all_res)):
+         sim.nx= all_res[i][0]
+         sim.nl= all_res[i][1]
+         sim.launch_run()
 #=============================================================================
 elif (sim.run_type == "amp_study"):
   

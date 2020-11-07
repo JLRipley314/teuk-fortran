@@ -33,6 +33,7 @@ endif
 
 ifeq ($(FC),ifort)
 	FFLAGS+= -std08 -ipo -warn declarations -warn all -qopenmp \
+		-traceback \
 		-module $(OBJDIR) 
 		#-check-bounds 
 endif
