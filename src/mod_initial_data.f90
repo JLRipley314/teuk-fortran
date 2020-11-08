@@ -3,7 +3,7 @@ module mod_initial_data
    use mod_prec
    use mod_field,  only: field
    use mod_cheb,   only: Rvec
-   use mod_swal,   only: Yvec, swal
+   use mod_swal,   only: swal
    use mod_params, only: &
       ZI, dt, nx, ny, &
       min_m, max_m, &
@@ -34,7 +34,7 @@ contains
 
       integer(ip) :: i, j
       integer(ip) :: m_ang, l_ang
-      real(rp) :: max_val, bump, r, y
+      real(rp) :: max_val, bump, r
       real(rp) :: width, rl, ru 
 
       complex(rp) :: amp
@@ -91,88 +91,53 @@ contains
 !-----------------------------------------------------------------------------
 ! p = (...)\phi_{,t} + (...), so use p to set \phi_{,t}
 !-----------------------------------------------------------------------------
-   select case (initial_data_direction)
-      !-----------------------------------------------------------------------
-      ! ingoing
-      case ("i")
-         do j=1,ny
-         do i=1,nx
-            R = Rvec(i)
-            Y = Yvec(j)
+      select case (initial_data_direction)
+         !-----------------------------------------------------------------------
+         ! tangent to outgoing principal null direction
+         case ("o")
+            do j=1,ny
+            do i=1,nx
+               R = Rvec(i)
 
-            p%n(i,j,m_ang) = &
-               (f%n(i,j,m_ang)*( &
-               -  2*bhs**2*R*(cl**2 + 6*bhm*R) &
-               +  4*cl**2*bhm*(-(cl**2*spin) + 2*bhm*R*(2 + spin)) &
-               +  (0,2)*bhs*(4*cl**2*bhm*m_ang*R + cl**4*(m_ang - spin*Y)) &
-               ))/cl**4 &
-            +  q%n(i,j,m_ang)*( &
-                  (-2*( &
-                     cl**6 &
-                  +  cl**2*(bhs**2 - 8*bhm**2)*R**2 &
-                  +  4*bhs**2*bhm*R**3 &
-                  ))/cl**4 &
-               -  (R**3*( &
-                     8*bhm*(2*bhm - (bhs**2*R)/cl**2)*(1 + (2*bhm*R)/cl**2) &
-                  +  bhs**2*(-1 + Y**2) &
-                  ))/(cl**2*(2 + (4*bhm*R)/cl**2)) &
-               )
-         end do
-         end do
-      !-----------------------------------------------------------------------
-      ! outgoing
-      case ("o")
-         do j=1,ny
-         do i=1,nx
-            R = Rvec(i)
-            Y = Yvec(j)
+               p%n(i,j,m_ang) = &
+                  0.5_rp*(   &
+                     cl**2   &
+                  -  2*bhm*R &
+                  +  (bhs*R/cl)**2 &
+                  )*q%n(i,j,m_ang) &
+               -  ZI*bhs*f%n(i,j,m_ang)
 
-            p%n(i,j,m_ang) = &
-               (q%n(i,j,m_ang)*( &
-                  64*cl**4*bhm**4*R**2 &
-               +  bhs**4*R**2*(16*bhm**2*R**2 + cl**4*(-1 + Y**2)) &
-               +  bhs**2*(-64*cl**2*bhm**3*R**3 + cl**8*(-1 + Y**2) - 2*cl**6*bhm*R*(-1 + Y**2)) &
-               ))/( &
-                  4.*cl**4*bhm*(2*cl**2*bhm - bhs**2*R) &
-               ) &
-            +  f%n(i,j,m_ang)*( &
-                  (-2*bhs**2*R*(cl**2 + 6*bhm*R))/cl**4 &
-               -  4*bhm*spin &
-               +  (8*bhm**2*R*(2 + spin))/cl**2 &
-               -  (0,2)*bhs*spin*Y &
-               -  (0,0.5_rp)*m_ang*( &
-                     8 &
-                  +  (16*bhm*R)/cl**2 &
-                  +  bhs*(-4 - (16*bhm*R)/cl**2) &
-                  +  (bhs**2*cl**2*(-1 + Y**2))/(bhm*(2*cl**2*bhm - bhs**2*R)) &
-                  ) &
-               )
-         end do
-         end do
-      !-----------------------------------------------------------------------
-      ! time symmetric 
-      case ("t")
-         do j=1,ny
-         do i=1,nx
-            R = Rvec(i)
-            Y = Yvec(j)
-            
-            p%n(i,j,m_ang) = &
-               (-2*q%n(i,j,m_ang)*( &
-                  cl**6 &
-               +  cl**2*(bhs**2 - 8*bhm**2)*R**2 &
-               +  4*bhs**2*bhm*R**3 &
-               ))/cl**4 &
-            +  (f%n(i,j,m_ang)*( &
-               -  2*bhs**2*R*(cl**2 + 6*bhm*R) &
-               +  4*cl**2*bhm*(-(cl**2*spin) + 2*bhm*R*(2 + spin)) &
-               +  (0,2)*bhs*(4*cl**2*bhm*m_ang*R + cl**4*(m_ang - spin*Y)) &
-               ))/cl**4 
-         end do
-         end do
-      case default
-         ! do nothing
-   end select 
+               p%n(i,j,m_ang) = &
+                  p%n(i,j,m_ang) / (  &
+                     2*bhm*(2*bhm - ((bhs/cl)**2) * R) &
+                  )
+            end do
+            end do
+         !-----------------------------------------------------------------------
+         ! tangent to ingoing principal null direction
+         case ("i")
+            do j=1,ny
+            do i=1,nx
+               R = Rvec(i)
+
+               p%n(i,j,m_ang) = &
+               -  ((R/cl)**2) * q%n(i,j,m_ang)
+
+               p%n(i,j,m_ang) = &
+                  p%n(i,j,m_ang) / (  &
+                     2 + (4*bhm*R)/(cl**2) &
+                  ) 
+            end do
+            end do
+         !-----------------------------------------------------------------------
+         ! time symmetric 
+         case ("t")
+
+            p%n(i,j,m_ang) = 0.0_rp
+
+         case default
+            ! do nothing
+      end select 
 !-----------------------------------------------------------------------------
 ! copy to np1 so can be saved
 !-----------------------------------------------------------------------------

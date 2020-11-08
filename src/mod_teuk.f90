@@ -16,7 +16,7 @@ module mod_teuk
       constrained_evo
 
    use mod_cheb, only: R=>Rarr, compute_DR
-   use mod_swal, only: Y=>Yarr, compute_swal_laplacian
+   use mod_swal, only: cy=>cyarr, sy=>syarr, compute_swal_laplacian
 
    use mod_scd_order_source, only: scd_order_source 
 !=============================================================================
@@ -29,161 +29,78 @@ module mod_teuk
    end interface
 !=============================================================================
    real(rp), allocatable :: &
-      A_pp(:,:,:), A_pq(:,:,:), A_pf(:,:,:), &
-      A_qp(:,:,:), A_qq(:,:,:), A_qf(:,:,:), &
-      A_fp(:,:,:), A_fq(:,:,:), A_ff(:,:,:) 
+      A_pp(:,:,:), A_pq(:,:,:)
 
    complex(rp), allocatable :: &
-      B_pp(:,:,:), B_pq(:,:,:), B_pf(:,:,:), &
-      B_qp(:,:,:), B_qq(:,:,:), B_qf(:,:,:), &
-      B_fp(:,:,:), B_fq(:,:,:), B_ff(:,:,:) 
+      B_pp(:,:,:), B_pq(:,:,:), B_pf(:,:,:)
+
+   real(rp), allocatable :: prefactor_p(:,:)
+
+   complex(rp), parameter :: ZI = (0.0_rp, 1.0_rp)
 !=============================================================================
 contains
 !=============================================================================
    subroutine teuk_init()
       integer(ip) :: m_ang
+
       allocate(A_pp(nx,ny,min_m:max_m))
       allocate(A_pq(nx,ny,min_m:max_m))
-      allocate(A_pf(nx,ny,min_m:max_m))
-      allocate(A_qp(nx,ny,min_m:max_m))
-      allocate(A_qq(nx,ny,min_m:max_m))
-      allocate(A_qf(nx,ny,min_m:max_m))
-      allocate(A_fp(nx,ny,min_m:max_m))
-      allocate(A_fq(nx,ny,min_m:max_m))
-      allocate(A_ff(nx,ny,min_m:max_m))
 
       allocate(B_pp(nx,ny,min_m:max_m))
       allocate(B_pq(nx,ny,min_m:max_m))
       allocate(B_pf(nx,ny,min_m:max_m))
-      allocate(B_qp(nx,ny,min_m:max_m))
-      allocate(B_qq(nx,ny,min_m:max_m))
-      allocate(B_qf(nx,ny,min_m:max_m))
-      allocate(B_fp(nx,ny,min_m:max_m))
-      allocate(B_fq(nx,ny,min_m:max_m))
-      allocate(B_ff(nx,ny,min_m:max_m))
+
+      allocate(prefactor_p(nx,ny))
       !----------------------------
       m_loop: do m_ang=min_m,max_m
       !----------------------------
-         A_pp(:,:,m_ang) = 0.0_rp
-
-         A_pq(:,:,m_ang) = ((R**2)*((cl**4) - 2*(cl**2)*bhm*R + (bhs**2)*(R**2)))/(cl**4) 
-
-         A_pf(:,:,m_ang) = 0.0_rp
-      !----------------------------
-         A_qp(:,:,m_ang) = cl**4/(&
-            16*cl**2*bhm**2*(cl**2 + 2*bhm*R) &
-         +  bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2) &
+         A_pp(:,:,m_ang) = (2.0_rp / (cl**4)) * ( &
+            (cl**6) &
+         +  (cl**2)*(bhs**2 - 8*(bhm**2))*(R**2) &
+         +  4*(bhs**2)*bhm*(R**3) &
          )
 
-         A_qq(:,:,m_ang) = (&
-            2*(cl**6 + cl**2*(bhs**2 - 8*bhm**2)*R**2 + 4*bhs**2*bhm*R**3) &
-         )/(&
-            16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2) &
+         A_pq(:,:,m_ang) = ((R**2) / (cl**4)) * ( &
+            (cl**4) &
+         -  2*(cl**2)*bhm*R &
+         +  (bhs**2)*(R**2) &
+         )
+      !----------------------------
+         B_pp(:,:,m_ang) = - ( &
+            2*ZI*bhs*m_ang*((cl**2) + 4*bhm*R) / (cl**2) &
+         -  2*(bhs**2)*(cl**2 + 6*bhm*R)*R / (cl**4)   &
+         -  4*bhm*spin &
+         +  8*(bhm**2)*(2 + spin)*R / (cl**2) &
+         +  2*ZI*bhs*spin*cy &
          )
 
-         A_qf(:,:,m_ang) = 0.0_rp
-      !----------------------------
-         A_fp(:,:,m_ang) = 0.0_rp
+         B_pq(:,:,m_ang) = (2.0_rp * R / (cl**4)) * ( &
+            2*(bhs**2)*(R**2) &
+         +  (1 + spin)*(cl**4)  &
+         -  (ZI*bhs*m_ang + (3 + spin)*bhm) * ((cl**2) * R) &
+         )
 
-         A_fq(:,:,m_ang) = 0.0_rp
-
-         A_ff(:,:,m_ang) = 0.0_rp
-      !----------------------------
-      !----------------------------
-         B_pp(:,:,m_ang) = 0.0_rp 
-
-         B_pq(:,:,m_ang) = cmplx(&
-            -2*R*(-1 - spin + (R*(-2*bhs**2*R + cl**2*bhm*(3 + spin)))/cl**4) &
-         ,&
-            (-2*bhs*m_ang*R**2)/cl**2 &
-         ,kind=rp)
-
-         B_pf(:,:,m_ang) = cmplx(&
-            (-2*R*(-(bhs**2*R) + cl**2*bhm*(1 + spin)))/cl**4 &
-         ,&
-            (-2*bhs*m_ang*R)/cl**2 &
-         ,kind=rp)
-      !----------------------------
-         B_qp(:,:,m_ang) = cmplx( &
-            -( &
-            (32*cl**6*bhm**3 - 8*bhs**2*cl**4*bhm*(cl**2 + 4*bhm*R)) &
-         /  (16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2))**2) &
-         , &
-            0.0_rp &
-         ,kind=rp)
-
-         B_qq(:,:,m_ang) = cmplx( &
-            -( &
-            ( &
-               64*cl**4*bhm**3*(12*cl**2*bhm*R - cl**4*(-1 + spin) + 4*bhm**2*R**2*(4 + spin)) &
-            +  2*bhs**4*R*((cl**2 + 4*bhm*R)**2*(3*cl**2 + 10*bhm*R) - 3*cl**4*(cl**2 + 6*bhm*R)*Y**2) &
-            -  4*bhs**2*cl**2*bhm*( &
-                  240*cl**2*bhm**2*R**2 + 32*bhm**3*R**3*(9 + spin) &
-               -  2*cl**4*bhm*R*(-26 + 3*spin + (6 + spin)*Y**2) + cl**6*(4 + spin*(-1 + Y**2)) &
-            ) &
-            )/( &
-            16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2))**2 &
-            ) &
-         , &
-            ( &
-               -2*bhs*cl**2*(4*m_ang*bhm*R + cl**2*(m_ang - spin*Y)) &
-            )/( &
-               16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2) &
-            ) &
-         ,kind=rp)
-
-         B_qf(:,:,m_ang) = cmplx(&
-            ( &
-            -  2*cl**2*( &
-                  128*cl**4*bhm**4*(1 + spin) &
-               +  bhs**4*(32*bhm**2*R**2 - cl**4*(-1 + Y**2) -  12*cl**2*bhm*R*(-1 + Y**2)) &
-               +  4*bhs**2*bhm**2*( &
-                     16*bhm**2*R**2*(-1 + spin) - 16*cl**2*bhm*R*(3 + spin) + cl**4*(-6 - 5*spin + (2 + spin)*Y**2) &
-                  ) &
-            ) &
-            )/( &
-               16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2) &
-            )**2 &
-         ,&
-            ( &
-            -  8*bhs*cl**2*bhm*( &
-                  8*cl**4*bhm**2*(m_ang + spin*Y) + bhs**2*(m_ang*(cl**2 + 4*bhm*R)**2 & 
-               -  2*cl**2*(cl**2 + 4*bhm*R)*spin*Y + cl**4*m_ang*Y**2) &
-               ) &
-            )/( &
-               16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2) &
-            )**2 &
-         ,kind=rp)
-      !----------------------------
-         B_fp(:,:,m_ang) = cmplx( &
-            cl**4 &
-         / &
-            (16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2)) &
-         , &
-            0.0_rp &
-         ,kind=rp)
-
-         B_fq(:,:,m_ang) = cmplx( &
-            (2*(cl**6 + cl**2*(bhs**2 - 8*bhm**2)*R**2 + 4*bhs**2*bhm*R**3)) &
-         / &
-            (16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2)) &
-         , &
-            0.0_rp &
-         ,kind=rp)
-
-         B_ff(:,:,m_ang) = cmplx( &
-            -( & 
-               (2*bhs**2*R*(cl**2 + 6*bhm*R) + 4*cl**2*bhm*(cl**2*spin - 2*bhm*R*(2 + spin))) &
-         / &
-               (-16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*((cl**2 + 4*bhm*R)**2 - cl**4*Y**2)) &
-            ) &
-         , &
-            (-2*bhs*cl**2*(4*m_ang*bhm*R + cl**2*(m_ang - spin*Y))) &
-         /  &
-            (16*cl**2*bhm**2*(cl**2 + 2*bhm*R) + bhs**2*(-(cl**2 + 4*bhm*R)**2 + cl**4*Y**2)) &
-         ,kind=rp)
+         B_pf(:,:,m_ang) = - (2.0_rp * R / (cl**4)) * ( &
+            ZI*bhs*(cl**2)*m_ang &
+         -  (bhs**2)*R &
+         +  (cl**2)*bhm*(1 + spin) &
+         )
       end do m_loop
+      !------------------------------------------------------------------
+      prefactor_p = 1.0_rp / ( &
+         8*bhm*(2*(cl**2)*bhm - (bhs**2)*R)*((cl**2) + 2*bhm*R) / (cl**4) &
+      -  (bhs*sy)**2 &
+      )
 
+      do m_ang=min_m,max_m
+         A_pp(:,:,m_ang) = A_pp(:,:,m_ang) * prefactor_p
+         A_pq(:,:,m_ang) = A_pq(:,:,m_ang) * prefactor_p 
+
+         B_pp(:,:,m_ang) = B_pp(:,:,m_ang) * prefactor_p 
+         B_pq(:,:,m_ang) = B_pq(:,:,m_ang) * prefactor_p 
+         B_pf(:,:,m_ang) = B_pf(:,:,m_ang) * prefactor_p 
+      end do
+      !------------------------------------------------------------------
    end subroutine teuk_init
 !=============================================================================
    subroutine set_k(step, m_ang, & 
@@ -208,30 +125,21 @@ contains
       kp(:,:,m_ang) = &
          A_pp(:,:,m_ang) * p%DR(:,:,m_ang) &
       +  A_pq(:,:,m_ang) * q%DR(:,:,m_ang) &
-      +  A_pf(:,:,m_ang) * f%DR(:,:,m_ang) &
+
       +  B_pp(:,:,m_ang) * p%level(:,:,m_ang) &
       +  B_pq(:,:,m_ang) * q%level(:,:,m_ang) &
       +  B_pf(:,:,m_ang) * f%level(:,:,m_ang) &
-      +  f%swal_lap(:,:,m_ang) 
+
+      +  prefactor_p     * f%swal_lap(:,:,m_ang)
       !-------------------------------------
       if (.not. constrained_evo) then
          kq(:,:,m_ang) = &
-            A_qp(:,:,m_ang) * p%DR(:,:,m_ang) &
-         +  A_qq(:,:,m_ang) * q%DR(:,:,m_ang) &
-         +  A_qf(:,:,m_ang) * f%DR(:,:,m_ang) &
-         +  B_qp(:,:,m_ang) * p%level(:,:,m_ang) &
-         +  B_qq(:,:,m_ang) * q%level(:,:,m_ang) &
-         +  B_qf(:,:,m_ang) * f%level(:,:,m_ang) &
-         -  constraint_damping * (q%level(:,:,m_ang) - f%DR(:,:,m_ang))
+            p%DR(:,:,m_ang) !&
+!         -  constraint_damping * (q%level(:,:,m_ang) - f%DR(:,:,m_ang))
       end if
       !-------------------------------------
       kf(:,:,m_ang) = &
-         A_fp(:,:,m_ang) * p%DR(:,:,m_ang) &
-      +  A_fq(:,:,m_ang) * q%DR(:,:,m_ang) &
-      +  A_ff(:,:,m_ang) * f%DR(:,:,m_ang) &
-      +  B_fp(:,:,m_ang) * p%level(:,:,m_ang) &
-      +  B_fq(:,:,m_ang) * q%level(:,:,m_ang) &
-      +  B_ff(:,:,m_ang) * f%level(:,:,m_ang) 
+         p%level(:,:,m_ang)
 
    end subroutine set_k
 !=============================================================================
@@ -405,7 +313,7 @@ contains
       integer(ip), intent(in)    :: m_ang
       type(field), intent(in)    :: q 
       type(field), intent(inout) :: f
-      type(field), intent(out)   :: res
+      type(field), intent(inout) :: res
 
       integer(ip), parameter :: step = 5_ip
 
@@ -416,3 +324,4 @@ contains
    end subroutine compute_res_q
 !=============================================================================
 end module mod_teuk
+
