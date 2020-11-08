@@ -133,7 +133,7 @@ contains
          ! time symmetric 
          case ("t")
 
-            p%n(i,j,m_ang) = 0.0_rp
+            p%n(:,:,m_ang) = 0.0_rp
 
          case default
             ! do nothing
