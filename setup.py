@@ -22,8 +22,8 @@ sim.compactification_length= float(1)
 sim.evolve_time= float(30) ## units of black hole mass
 sim.num_saved_times= int(60)
 #=============================================================================
-sim.nx= 64 ## num radial pts 
-sim.nl= 12 ## num angular values
+sim.nx= 80 ## num radial pts 
+sim.nl= 20 ## num angular values
 #=============================================================================
 ## whether or not only to save horizon/scriplus/norm or full field vals 
 sim.sparse_save= False

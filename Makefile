@@ -38,8 +38,6 @@ ifeq ($(FC),ifort)
 		#-check-bounds 
 endif
 #==========================================================================
-RUN = $(BIN)default.run
-
 MAIN = main.f90
 
 OBJ= $(addprefix $(OBJDIR), \
@@ -76,13 +74,10 @@ DEPS = $(addprefix $(SRC), \
 	mod_write_level.f90 \
 	)
 #==========================================================================
-all: $(RUN)
+all: default.run
 
 %.run: $(MAIN) $(OBJ)
 	$(FC) -o $(BIN)$@ $^ -I$(INCFFTW) -L$(LIBFFTW) $(SYSLIB) $(FFLAGS)   
-
-$(RUN): $(MAIN) $(OBJ)
-	$(FC) -o $@ $^ -I$(INCFFTW) -L$(LIBFFTW) $(SYSLIB) $(FFLAGS)  
 
 $(OBJDIR)%.o: %.f90
 	$(FC) $(FFLAGS) -I$(INCFFTW) -L$(LIBFFTW) $(SYSLIB) -c -o $@ $^ 
