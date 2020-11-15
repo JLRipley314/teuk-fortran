@@ -56,23 +56,6 @@ OBJ= $(addprefix $(OBJDIR), \
 	mod_teuk.o \
 	mod_write_level.o \
 	)
-
-DEPS = $(addprefix $(SRC), \
-	mod_prec.f90 \
-	mod_params.f90 \
-	mod_field.f90 \
-	mod_fields_list.f90 \
-	mod_io.f90 \
-	mod_cheb_fftw.f90 \
-	mod_swal.f90 \
-	mod_bkgrd.f90 \
-	mod_ghp.f90 \
-	mod_metric_recon.f90 \
-	mod_scd_order_source.f90 \
-	initial_data.f90 \
-	mod_teuk.f90 \
-	mod_write_level.f90 \
-	)
 #==========================================================================
 all: default.run
 
