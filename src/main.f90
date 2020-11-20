@@ -39,8 +39,11 @@ program main
       psi4_scd_p, psi4_scd_q, psi4_scd_f, &
       res_scd_q, & 
 
-      psi4_integral_lin_f, &
-      psi4_integral_scd_f, &
+      psi4_integrated_lin_f, &
+      psi4_integrated_scd_f, &
+
+      psi4_twice_integrated_lin_f, &
+      psi4_twice_integrated_scd_f, &
 
       psi3, psi2, la, pi, muhll, hlmb, hmbmb, &
       res_bianchi3, res_bianchi2, res_hll
@@ -76,14 +79,23 @@ clean_memory: block
    call set_field(fname="lin_q",spin=psi_spin,boost=psi_boost,falloff=2_ip,f=psi4_lin_q)
    call set_field(fname="lin_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_lin_f)
 
-   call set_field(fname="integral_lin_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integral_lin_f)
-
+   call set_field(fname="integrated_lin_f", &
+      spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integrated_lin_f &
+   )
+   call set_field(fname="twice_integrated_lin_f", &
+      spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_twice_integrated_lin_f &
+   )
    if (scd_order) then
       call set_field(fname="scd_p",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_scd_p)
       call set_field(fname="scd_q",spin=psi_spin,boost=psi_boost,falloff=2_ip,f=psi4_scd_q)
       call set_field(fname="scd_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_scd_f)
 
-      call set_field(fname="integral_scd_f",spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integral_scd_f)
+      call set_field(fname="integrated_scd_f", &
+         spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_integrated_scd_f &
+      )
+      call set_field(fname="twice_integrated_scd_f", &
+         spin=psi_spin,boost=psi_boost,falloff=1_ip,f=psi4_twice_integrated_scd_f &
+      )
    end if
 !-----------------------------------------------------------------------------
 ! metric reconstructed fields
@@ -163,7 +175,8 @@ clean_memory: block
          call swal_filter(lin_m(m_i),psi4_lin_q)
          call swal_filter(lin_m(m_i),psi4_lin_f)
          !------------------------------------
-         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_integral_lin_f)
+         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_integrated_lin_f)
+         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_twice_integrated_lin_f)
       !--------------------------------------------------------------------
       ! metric recon evolves +/- m_ang so only evolve m_ang>=0
       !--------------------------------------------------------------------
@@ -231,7 +244,8 @@ clean_memory: block
                call swal_filter(scd_m(m_i),psi4_scd_q)
                call swal_filter(scd_m(m_i),psi4_scd_f)
                !------------------------------------
-               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_integral_scd_f)
+               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_integrated_scd_f)
+               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_twice_integrated_scd_f)
             end if
          end do
          !$OMP END PARALLEL DO

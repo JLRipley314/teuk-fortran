@@ -66,14 +66,14 @@ $(OBJDIR)%.o: %.f90
 	$(FC) $(FFLAGS) -I$(INCFFTW) -L$(LIBFFTW) $(SYSLIB) -c -o $@ $^ 
 #==========================================================================
 clean_obj:
-	rm -f $(OBJDIR)*.o
-	rm -f $(OBJDIR)*.mod
+	$(RM) $(OBJDIR)*.o
+	$(RM) $(OBJDIR)*.mod
 clean_bin:
-	rm -f $(BIN)*.run
+	$(RM) $(BIN)*.run
 clean_out:
-	rm -rf output/*
+	$(RM) -r output/*
 clean_all:
-	rm -f $(OBJDIR)*.o
-	rm -f $(OBJDIR)*.mod
-	rm -f $(BIN)*.run
-	rm -rf output/*
+	$(RM) $(OBJDIR)*.o
+	$(RM) $(OBJDIR)*.mod
+	$(RM) $(BIN)*.run
+	$(RM) -r output/*

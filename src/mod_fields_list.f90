@@ -11,8 +11,11 @@ module mod_fields_list
                   psi4_scd_p, psi4_scd_q, psi4_scd_f, &
                   res_scd_q, &
 
-                  psi4_integral_lin_f, &
-                  psi4_integral_scd_f, &
+                  psi4_integrated_lin_f, &
+                  psi4_integrated_scd_f, &
+
+                  psi4_twice_integrated_lin_f, &
+                  psi4_twice_integrated_scd_f, &
 
                   psi3, psi2, la, pi, muhll, hlmb, hmbmb, &
 
