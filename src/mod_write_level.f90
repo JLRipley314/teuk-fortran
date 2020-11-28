@@ -228,23 +228,43 @@ contains
             call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),muhll)
             call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),muhll)
          end do
+         !--------------------------------------------------------------------
+         if (write_indep_res) then
+            !$OMP PARALLEL DO NUM_THREADS(len_write_lin_m) IF(len_write_lin_m>1)
+            do i=1,len_write_lin_m
+               call metric_recon_indep_res(write_lin_m(i))
+            end do
+            !$OMP END PARALLEL DO
+
+            do i=1,len_write_lin_m
+               call write_norm(time,write_lin_m(i),res_bianchi3)
+               call write_norm(time,write_lin_m(i),res_bianchi2)
+               call write_norm(time,write_lin_m(i),res_hll)
+            end do
+         end if
+         !--------------------------------------------------------------------
       end if
       !-----------------------------------------------------------------------
-      if (write_indep_res) then
-         !$OMP PARALLEL DO NUM_THREADS(len_write_lin_m) IF(len_write_lin_m>1)
+      if (  (write_indep_res) &
+      .and. (.not. constrained_evo) &
+      ) then
          do i=1,len_write_lin_m
-            call metric_recon_indep_res(write_lin_m(i))
-         end do
-         !$OMP END PARALLEL DO
-
-         do i=1,len_write_lin_m
-            call write_norm(time,write_lin_m(i),res_bianchi3)
-            call write_norm(time,write_lin_m(i),res_bianchi2)
-            call write_norm(time,write_lin_m(i),res_hll)
+            call compute_res_q( write_lin_m(i),psi4_lin_q,psi4_lin_f,res_lin_q)
+            call write_norm(time,write_lin_m(i),res_lin_q)
          end do
       end if
       !-----------------------------------------------------------------------
       if (scd_order) then
+         !--------------------------------------------------------------------
+         if (  (write_indep_res) &
+         .and. (.not. constrained_evo) &
+         ) then
+            do i=1,len_write_scd_m
+               call compute_res_q( write_scd_m(i),psi4_scd_q,psi4_scd_f,res_scd_q)
+               call write_norm(time,write_scd_m(i),res_scd_q)
+            end do
+         end if
+         !--------------------------------------------------------------------
          do i=1,len_write_scd_m
             call write_horizon_or_scriplus(time,"horizon", write_scd_m(i),psi4_scd_f)
             call write_horizon_or_scriplus(time,"scriplus",write_scd_m(i),psi4_scd_f)
