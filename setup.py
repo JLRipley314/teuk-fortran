@@ -15,12 +15,12 @@ sim= Sim(args)
 sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
-sim.black_hole_mass= float(0.5)	
+sim.black_hole_mass= float(0.9999)	
 sim.black_hole_spin= round(1.0*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(400) ## units of black hole mass
-sim.num_saved_times= int(1200)
+sim.evolve_time= float(300) ## units of black hole mass
+sim.num_saved_times= int(1000)
 #=============================================================================
 sim.nx= 80 ## num radial pts 
 sim.nl= 20 ## num angular values
@@ -92,6 +92,8 @@ sim.initial_data_direction= "iiiiiiiiiiii"
 ## second order modes to evolve
 
 sim.scd_m= sim.lin_m
+for i in [-1,0,1]:
+   sim.scd_m.append(i)
 #=============================================================================
 ## which m angular values to write to file
 
@@ -108,9 +110,9 @@ if (sim.run_type == "basic_run"):
 #=============================================================================
 elif (sim.run_type == "res_study"):
    all_res= [
-      [160,42],
-      [170,46],
-      [180,50]
+      [160,40],
+      [172,46],
+      [194,52]
    ]
   
    for i in range(len(all_res)):

@@ -134,8 +134,8 @@ contains
       !-------------------------------------
       if (.not. constrained_evo) then
          kq(:,:,m_ang) = &
-            p%DR(:,:,m_ang) !&
-!         -  constraint_damping * (q%level(:,:,m_ang) - f%DR(:,:,m_ang))
+            p%DR(:,:,m_ang) &
+         -  constraint_damping * (q%level(:,:,m_ang) - f%DR(:,:,m_ang))
       end if
       !-------------------------------------
       kf(:,:,m_ang) = &
