@@ -228,21 +228,16 @@ contains
             call write_horizon_or_scriplus(time,"horizon", write_lin_m(i),muhll)
             call write_horizon_or_scriplus(time,"scriplus",write_lin_m(i),muhll)
          end do
-         !--------------------------------------------------------------------
-         if (write_indep_res) then
-            !$OMP PARALLEL DO NUM_THREADS(len_write_lin_m) IF(len_write_lin_m>1)
-            do i=1,len_write_lin_m
-               call metric_recon_indep_res(write_lin_m(i))
-            end do
-            !$OMP END PARALLEL DO
+      end if
+      !--------------------------------------------------------------------
+      if (write_indep_res) then
+         do i=1,len_write_lin_m
+            call metric_recon_indep_res(write_lin_m(i))
 
-            do i=1,len_write_lin_m
-               call write_norm(time,write_lin_m(i),res_bianchi3)
-               call write_norm(time,write_lin_m(i),res_bianchi2)
-               call write_norm(time,write_lin_m(i),res_hll)
-            end do
-         end if
-         !--------------------------------------------------------------------
+            call write_norm(time,write_lin_m(i),res_bianchi3)
+            call write_norm(time,write_lin_m(i),res_bianchi2)
+            call write_norm(time,write_lin_m(i),res_hll)
+         end do
       end if
       !-----------------------------------------------------------------------
       if (  (write_indep_res) &
@@ -313,11 +308,11 @@ contains
       integer(ip) :: i
       !-----------------------------------------------------------------------
       ! \Psi_4^{(1)} and linear metric reconstruction 
-      !--------------------------------------------------------------------------
+      !-----------------------------------------------------------------------
       do i=1,len_write_lin_m
          call write_csv(time,write_lin_m(i),psi4_lin_f)
       end do 
-
+      !-----------------------------------------------------------------------
       if (write_metric_recon_fields) then
          do i=1,len_write_lin_m
             call write_csv(time,write_lin_m(i),psi3)
@@ -327,7 +322,7 @@ contains
             call write_csv(time,write_lin_m(i),muhll)
          end do
       end if
-
+      !-----------------------------------------------------------------------
       if (write_indep_res) then
          if (.not. constrained_evo) then
             do i=1,len_write_lin_m
