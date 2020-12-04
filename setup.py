@@ -69,32 +69,31 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-#sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
-#sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
-#sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-#sim.amp_im= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-#sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
-#sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
-#sim.initial_data_direction= "iiiiiiiiiiii"
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
+sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.amp_im= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
+sim.initial_data_direction= "iiiiiiiiiiii"
 
 ## rescale for smaller amps
 #sim.amp_re= [4.0*x for x in sim.amp_re]
 #sim.amp_im= [4.0*x for x in sim.amp_im]
 
-sim.lin_m=  [-2,    2]
-sim.l_ang=  [ 2,    2]
-sim.amp_re= [ 0.1,  0.1]
-sim.amp_im= [ 0.0,  0.0]
-sim.rl_0=   [ 1.01, 1.01]
-sim.ru_0=   [ 3.0 , 3.0]
-sim.initial_data_direction= "ii"
+#sim.lin_m=  [-2,    2]
+#sim.l_ang=  [ 2,    2]
+#sim.amp_re= [ 0.1,  0.1]
+#sim.amp_im= [ 0.0,  0.0]
+#sim.rl_0=   [ 1.01, 1.01]
+#sim.ru_0=   [ 3.0 , 3.0]
+#sim.initial_data_direction= "ii"
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [-4, 4]
-#sim.scd_m= sim.lin_m
-#for i in [-1,0,1]:
-#   sim.scd_m.append(i)
+sim.scd_m= [x for x in sim.lin_m]
+for i in [-1,0,1]:
+   sim.scd_m.append(i)
 #=============================================================================
 ## which m angular values to write to file
 
