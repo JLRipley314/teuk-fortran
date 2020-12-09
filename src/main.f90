@@ -175,8 +175,8 @@ clean_memory: block
          call swal_filter(lin_m(m_i),psi4_lin_q)
          call swal_filter(lin_m(m_i),psi4_lin_f)
          !------------------------------------
-         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_integrated_lin_f)
-         call time_integrate_field(lin_m(m_i),psi4_lin_f,psi4_twice_integrated_lin_f)
+         call time_integrate_field(lin_m(m_i),psi4_lin_f,           psi4_integrated_lin_f)
+         call time_integrate_field(lin_m(m_i),psi4_integrated_lin_f,psi4_twice_integrated_lin_f)
       !--------------------------------------------------------------------
       ! metric recon evolves +/- m_ang so only evolve m_ang>=0
       !--------------------------------------------------------------------
@@ -244,8 +244,8 @@ clean_memory: block
                call swal_filter(scd_m(m_i),psi4_scd_q)
                call swal_filter(scd_m(m_i),psi4_scd_f)
                !------------------------------------
-               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_integrated_scd_f)
-               call time_integrate_field(scd_m(m_i),psi4_scd_f,psi4_twice_integrated_scd_f)
+               call time_integrate_field(scd_m(m_i),psi4_scd_f,           psi4_integrated_scd_f)
+               call time_integrate_field(scd_m(m_i),psi4_integrated_scd_f,psi4_twice_integrated_scd_f)
             end if
          end do
          !$OMP END PARALLEL DO
@@ -268,6 +268,9 @@ clean_memory: block
          call shift_time_step(lin_m(m_i),psi4_lin_p)
          call shift_time_step(lin_m(m_i),psi4_lin_q)
          call shift_time_step(lin_m(m_i),psi4_lin_f)
+
+         call shift_time_step(lin_m(m_i),psi4_integrated_lin_f)
+         call shift_time_step(lin_m(m_i),psi4_twice_integrated_lin_f)
       end do
 
       if (metric_recon) then
@@ -289,6 +292,9 @@ clean_memory: block
             call shift_time_step(scd_m(m_i),psi4_scd_p)
             call shift_time_step(scd_m(m_i),psi4_scd_q)
             call shift_time_step(scd_m(m_i),psi4_scd_f)
+
+            call shift_time_step(lin_m(m_i),psi4_integrated_scd_f)
+            call shift_time_step(lin_m(m_i),psi4_twice_integrated_scd_f)
 
             call scd_order_source_shift_time_step(scd_m(m_i),source)
          end do

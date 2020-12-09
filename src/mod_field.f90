@@ -177,8 +177,7 @@ contains
       f % k1(:,:,m_ang) = f % k5( :,:,m_ang) 
    end subroutine shift_time_step
 !=============================================================================
-! RK4 time integrator: integrate psi4 in time to get \dot{h} at scri+ 
-! we assume that we have already evolve psi4 so no need to set fields
+! RK4 time integrator: integrate field in time 
 !=============================================================================
    subroutine time_integrate_field(m_ang, f, int_f) 
       integer(ip), intent(in)    :: m_ang
