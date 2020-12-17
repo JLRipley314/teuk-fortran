@@ -16,11 +16,11 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)
-sim.black_hole_spin= round(0.7*sim.black_hole_mass,16)
+sim.black_hole_spin= round(0.998*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(1000) ## units of black hole mass
-sim.num_saved_times= int(2000)
+sim.evolve_time= float(250) ## units of black hole mass
+sim.num_saved_times= int(1000)
 #=============================================================================
 sim.nx= 64 ## num radial pts 
 sim.nl= 16 ## num angular values
@@ -28,15 +28,15 @@ sim.nl= 16 ## num angular values
 ## whether or not only to save horizon/scriplus/norm or full field vals 
 sim.sparse_save= True
 #=============================================================================
-sim.metric_recon=     False
-sim.scd_order=        False
+sim.metric_recon=     True
+sim.scd_order=        True
 sim.constrained_evo = False
 
 sim.write_indep_res=           True
 sim.write_metric_recon_fields= False
-sim.write_scd_order_source=    False
+sim.write_scd_order_source=    True
 sim.write_coefs=               False
-sim.write_coefs_swal=          False
+sim.write_coefs_swal=          True
 #=============================================================================
 ## details of computer setup 
 
@@ -69,25 +69,25 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-#sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
-#sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
-#sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-#sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,  0.0,  0.0,  0.0]
-#sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
-#sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
-#sim.initial_data_direction= "iiiiiiiiiiii"
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
+sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,  0.0,  0.0,  0.0]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
+sim.initial_data_direction= "iiiiiiiiiiii"
 
 ## rescale for smaller amps
 #sim.amp_re= [0.25*x for x in sim.amp_re]
 #sim.amp_im= [0.25*x for x in sim.amp_im]
 
-sim.lin_m=  [-2,    2]
-sim.l_ang=  [ 2,    2]
-sim.amp_re= [ 0.1,  0.1]
-sim.amp_im= [ 0.0,  0.0]
-sim.rl_0=   [ 1.01, 1.01]
-sim.ru_0=   [ 3.0 , 3.0]
-sim.initial_data_direction= "ii"
+#sim.lin_m=  [-2,    2]
+#sim.l_ang=  [ 2,    2]
+#sim.amp_re= [ 0.1,  0.1]
+#sim.amp_im= [ 0.0,  0.0]
+#sim.rl_0=   [ 1.01, 1.01]
+#sim.ru_0=   [ 3.0 , 3.0]
+#sim.initial_data_direction= "ii"
 #=============================================================================
 ## second order modes to evolve
 
@@ -101,18 +101,19 @@ sim.write_lin_m= sim.lin_m
 
 sim.write_scd_m= sim.scd_m
 #=============================================================================
-## start multiple for second order metric evolution 
+## multiple of when can begin second order evolution 
 
-sim.start_multiple= float(6.0)
+sim.integrate_psi4_start_multiple= float(6.0)
+sim.scd_order_start_multiple= float(6.0)
 #=============================================================================
 if (sim.run_type == "basic_run"):
    sim.launch_run()
 #=============================================================================
 elif (sim.run_type == "res_study"):
    all_res= [
-      [160,40],
+      [160,42],
       [172,46],
-      [194,52]
+      [194,50]
    ]
   
    for i in range(len(all_res)):
@@ -122,9 +123,8 @@ elif (sim.run_type == "res_study"):
 #=============================================================================
 elif (sim.run_type == "multiple"):
    all_spins= [
-      round(0.9998  *sim.black_hole_mass,16),
-      round(0.99998 *sim.black_hole_mass,16),
-      round(0.999998*sim.black_hole_mass,16)
+      round(0.998  *sim.black_hole_mass,16),
+      round(0.99998*sim.black_hole_mass,16)
    ]
    all_res= [
       [160,42],

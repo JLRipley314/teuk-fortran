@@ -185,18 +185,15 @@ contains
       type(field), intent(inout) ::int_f ! int_f :time integral of f 
    !--------------------------------------------------------
       int_f%k1(:,:,m_ang)= f%n(:,:,m_ang)
-      int_f%l2(:,:,m_ang)= int_f%n(:,:,m_ang)+0.5_rp*dt*int_f%n(:,:,m_ang)
+      int_f%l2(:,:,m_ang)= int_f%n(:,:,m_ang)+0.5_rp*dt*int_f%k1(:,:,m_ang)
    !--------------------------------------------------------
       int_f%k2(:,:,m_ang)= f%l2(:,:,m_ang)
-
       int_f%l3(:,:,m_ang)= int_f%n(:,:,m_ang)+0.5_rp*dt*int_f%k2(:,:,m_ang)
    !--------------------------------------------------------
       int_f%k3(:,:,m_ang)= f%l3(:,:,m_ang)
-
       int_f%l4(:,:,m_ang)= int_f%n(:,:,m_ang)+dt*int_f%k3(:,:,m_ang)
    !--------------------------------------------------------
       int_f%k4(:,:,m_ang) = f%l4(:,:,m_ang)
-
       int_f%np1(:,:,m_ang)= int_f%n(:,:,m_ang) &
       +  (dt/6.0_rp)*( &
             int_f%k1(:,:,m_ang) &

@@ -18,6 +18,7 @@ program main
       len_lin_pos_m, &
       psi_spin, psi_boost, &
       metric_recon, scd_order, &
+      integrate_psi4_start_time, &
       scd_order_start_time
 
    use mod_field,        only: set_field, shift_time_step, time_integrate_field
@@ -175,8 +176,10 @@ clean_memory: block
          call swal_filter(lin_m(m_i),psi4_lin_q)
          call swal_filter(lin_m(m_i),psi4_lin_f)
          !------------------------------------
-         call time_integrate_field(lin_m(m_i),psi4_lin_f,           psi4_integrated_lin_f)
-         call time_integrate_field(lin_m(m_i),psi4_integrated_lin_f,psi4_twice_integrated_lin_f)
+         if (time > integrate_psi4_start_time) then
+            call time_integrate_field(lin_m(m_i),psi4_lin_f,           psi4_integrated_lin_f)
+            call time_integrate_field(lin_m(m_i),psi4_integrated_lin_f,psi4_twice_integrated_lin_f)
+         end if
       !--------------------------------------------------------------------
       ! metric recon evolves +/- m_ang so only evolve m_ang>=0
       !--------------------------------------------------------------------
@@ -244,8 +247,10 @@ clean_memory: block
                call swal_filter(scd_m(m_i),psi4_scd_q)
                call swal_filter(scd_m(m_i),psi4_scd_f)
                !------------------------------------
-               call time_integrate_field(scd_m(m_i),psi4_scd_f,           psi4_integrated_scd_f)
-               call time_integrate_field(scd_m(m_i),psi4_integrated_scd_f,psi4_twice_integrated_scd_f)
+               if (time > integrate_psi4_start_time) then
+                  call time_integrate_field(scd_m(m_i),psi4_scd_f,           psi4_integrated_scd_f)
+                  call time_integrate_field(scd_m(m_i),psi4_integrated_scd_f,psi4_twice_integrated_scd_f)
+               end if 
             end if
          end do
          !$OMP END PARALLEL DO

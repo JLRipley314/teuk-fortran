@@ -69,8 +69,15 @@ class Sim:
       )
 #-----------------------------------------------------------------------------
 ## when to begin metric reconstruction
+      self.integrate_psi4_start_time = self.black_hole_mass*max(
+         [  self.integrate_psi4_start_multiple*(
+               (2.0/self.black_hole_mass)*(x - self.horizon)
+            +  4.0*log(max(x,self.horizon)/self.horizon)
+            ) for x in self.ru
+         ]
+      )
       self.scd_order_start_time = self.black_hole_mass*max(
-         [  self.start_multiple*(
+         [  self.scd_order_start_multiple*(
                (2.0/self.black_hole_mass)*(x - self.horizon)
             +  4.0*log(max(x,self.horizon)/self.horizon)
             ) for x in self.ru

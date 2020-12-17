@@ -15,6 +15,7 @@ module mod_params
    real(rp), protected :: horizon
    real(rp), protected :: R_max 
    real(rp), protected :: constraint_damping
+   real(rp), protected :: integrate_psi4_start_time
    real(rp), protected :: scd_order_start_time
 
    logical, protected :: sparse_save
@@ -222,6 +223,9 @@ contains
                !--------------------------------------------------------------
                case ('constraint_damping')
                   call read_param(label,buffer,constraint_damping)
+               !--------------------------------------------------------------
+               case ('integrate_psi4_start_time')
+                  call read_param(label,buffer,integrate_psi4_start_time)
                !--------------------------------------------------------------
                case ('scd_order_start_time')
                   call read_param(label,buffer,scd_order_start_time)
