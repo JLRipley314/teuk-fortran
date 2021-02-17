@@ -10,7 +10,6 @@ BIN= $(TOP)bin/
 OBJDIR= $(TOP)obj/
 
 vpath %.mod $(OBJDIR)
-vpath %.o   $(OBJDIR)
 vpath %.f90 $(SRC)
 #==========================================================================
 ## for FFTW 
@@ -18,7 +17,7 @@ vpath %.f90 $(SRC)
 INCFFTW= /usr/include
 LIBFFTW= /lib/x86_64-linux-gnu
 #==========================================================================
-FC = ifort#gfortran#
+FC = gfortran#ifort#
 
 FFLAGS= -g -fmax-errors=5 -O3 
 
