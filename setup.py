@@ -16,7 +16,7 @@ sim.bin_name= 'default.run'
 sim.recompile= False
 #=============================================================================
 sim.black_hole_mass= float(0.5)
-sim.black_hole_spin= round(0.998*sim.black_hole_mass,16)
+sim.black_hole_spin= round(0.0*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
 sim.evolve_time= float(250) ## units of black hole mass
@@ -40,14 +40,8 @@ sim.write_coefs_swal=          True
 #=============================================================================
 ## details of computer setup 
 
-sim.computer= 'della'#'home'#
-sim.della_out_stem= '/tigress/jripley/tf-out/'
-
-## for della cluster/slurm script
-
-sim.walltime= '72:00:00' ## (hh:mm:ss)
-sim.memory=   '2048' ## MB 
-sim.email=    'lloydripley@gmail.com' ## for slurm notification
+sim.computer= 'cclake'#'home'#
+sim.cclake_out_stem= '/home/jr860/rds/rds-dirac-dp128/jr860/teuk-out'
 #=============================================================================
 ## we can only do metric reconstruction starting from psi4 for now.
 ## For pure first order Teukolsky evolution we can consider other

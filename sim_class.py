@@ -26,7 +26,8 @@ class Sim:
    def make_output_dir(self)->None:
       time_of_day= time.asctime().split()
       self.output_stem= str(
-         time_of_day[1]
+         '/'
+      +  time_of_day[1]
       +  '_'+time_of_day[2]
       +  '_'+time_of_day[3].replace(':','_')
       +	'_m'+str(self.black_hole_mass)
@@ -35,9 +36,9 @@ class Sim:
       +	'_nl'+str(self.nl)
       )
       if (self.computer=="home"):
-         self.output_dir= "output/"+self.output_stem
-      elif (self.computer=="della"):
-         self.output_dir=self.della_out_stem+self.output_stem
+         self.output_dir= "output"+self.output_stem
+      elif (self.computer=="cclake"):
+         self.output_dir=self.cclake_out_stem+self.output_stem
       else:
          raise ValueError("self.computer="+self.computer+" not supported")
       os.makedirs(self.output_dir)
@@ -154,35 +155,6 @@ class Sim:
                   write_str+= ' '+str(val)
                f.write(write_str+'\n')
 #=============================================================================
-   def write_slurm_script(self):
-      with open('{}/run.slurm'.format(self.home_dir), 'w') as f:
-         f.write('#!/bin/sh\n')
-         f.write('#SBATCH -J fteuk\t\t# job name\n')
-         f.write('#SBATCH -t {}\t\t# walltime (dd:hh:mm:ss)\n'.format(self.walltime))
-         f.write('#SBATCH -p physics\t\t# partition/queue name\n')
-         f.write('#SBATCH --mem={}MB\n'.format(self.memory))
-         f.write('#SBATCH --output={}\t\t# file for STDOUT\n'.format(self.output_file))
-         f.write('#SBATCH --mail-user={}\t\t# Mail  id of the user\n'.format(self.email))
-         #------------
-         ## for openmp
-         #------------
-         f.write('#SBATCH --nodes=1\n')
-         f.write('#SBATCH --ntasks-per-node=1\n')
-         f.write('#SBATCH --cpus-per-task={}\n'.format(self.num_threads))
-         f.write('\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n')
-         #------------
-         ## executable
-         #------------
-         run_str= './bin/{} {}\n\n'.format(self.bin_name, self.output_dir)
-         if (self.debug):
-            run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
-         f.write('\n'+run_str)
-
-      shutil.copyfile(
-      '{}/run.slurm'.format(self.home_dir),
-      '{}/run.slurm'.format(self.output_dir)
-      )
-#=============================================================================
    def compile(self)->None:
       subprocess.call('make '+self.bin_name,shell=True)
 #=============================================================================
@@ -209,9 +181,11 @@ class Sim:
             run_str= 'valgrind -v --track-origins=yes --leak-check=full '+run_str
          os.environ['OMP_NUM_THREADS']= str(self.num_threads)
          subprocess.call(run_str,shell=True) 
-      elif (self.computer=='della'):
-         self.write_slurm_script()
-         subprocess.call('sbatch run.slurm', shell='True')		
+      elif (self.computer=='cclake'):
+         subprocess.call('cp slurm_submit.peta4-cclake '+self.output_dir, shell='True')		
+         os.chdir(self.output_dir)
+         subprocess.call('sbatch slurm_submit.peta4-cclake', shell='True')		
+         os.chdir('/home/jr860/teuk-fortran')
       else:
          raise ValueError('computer= '+self.computer+' not yet supported')
 #=============================================================================
