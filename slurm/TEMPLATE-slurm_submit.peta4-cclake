@@ -11,7 +11,7 @@
 #SBATCH -A SPERHAKE-SL3-CPU
 #SBATCH -p cclake
 #SBATCH --nodes=1
-#SBATCH --time=4:00:00
+#SBATCH --time=1:00:00
 #SBATCH --mail-type=FAIL
 #SBATCH --no-requeue
 #SBATCH --ntasks=1
@@ -22,7 +22,7 @@ cp $HOME/teuk-fortran/bin/default.run .
 CMD="$HOME/teuk-fortran/bin/default.run $(pwd) | tee output"
 
 #! Increase this safe value to no more than 56 (number of cores per node):
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=1
 
 #! ############################################################
 #! do not change anything below this line 

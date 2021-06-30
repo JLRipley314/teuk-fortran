@@ -29,6 +29,9 @@ Runtime parameters are configured in the `setup.py` file.
 I have successfully compiled the code with
 gfortran (version 9) and ifort (version 17).
 
+## Running on clusters
+See `slurm` directory for some template slurm scripts 
+
 ## Derivation of equations of motion in coordinate form
 
 A Mathematica notebook that contains the equations of motion
