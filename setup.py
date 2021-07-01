@@ -19,11 +19,11 @@ sim.black_hole_mass= float(0.5)
 sim.black_hole_spin= round(0.0*sim.black_hole_mass,16)
 sim.compactification_length= float(1)
 #=============================================================================
-sim.evolve_time= float(10) ## units of black hole mass
-sim.num_saved_times= int(100)
+sim.evolve_time= float(300) ## units of black hole mass
+sim.num_saved_times= int(1500)
 #=============================================================================
-sim.nx= 64 ## num radial pts 
-sim.nl= 16 ## num angular values
+sim.nx= 96 ## num radial pts 
+sim.nl= 20 ## num angular values
 #=============================================================================
 ## whether or not only to save horizon/scriplus/norm or full field vals 
 sim.sparse_save= True
@@ -63,29 +63,29 @@ sim.psi_boost= int(-2)
 #=============================================================================
 ## initial data for all linear modes 
 #=============================================================================
-#sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
-#sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
-#sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
-#sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,  0.0,  0.0,  0.0]
-#sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
-#sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
-#sim.initial_data_direction= "iiiiiiiiiiii"
+sim.lin_m=  [-2,    2,   -3,    3,   -4,    4,   -5,    5,    -6,    6,   -7,    7]
+sim.l_ang=  [ 2,    2,    3,    3,    4,    4,    5,    5,     6,    6,    7,    7]
+sim.amp_re= [ 0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,  0.1,   0.1,  0.1,  0.1,  0.1]
+sim.amp_im= [ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,  0.0,  0.0,  0.0]
+sim.rl_0=   [ 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01, 1.01,  1.01, 1.01, 1.01, 1.01]
+sim.ru_0=   [ 3.0 , 3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,   3.0,  3.0,  3.0,  3.0]
+sim.initial_data_direction= "iiiiiiiiiiii"
 
 ## rescale for smaller amps
-#sim.amp_re= [0.25*x for x in sim.amp_re]
-#sim.amp_im= [0.25*x for x in sim.amp_im]
+sim.amp_re= [20*x for x in sim.amp_re]
+sim.amp_im= [20*x for x in sim.amp_im]
 
-sim.lin_m=  [-2,    2]
-sim.l_ang=  [ 2,    2]
-sim.amp_re= [ 0.1,  0.1]
-sim.amp_im= [ 0.0,  0.0]
-sim.rl_0=   [ 1.01, 1.01]
-sim.ru_0=   [ 3.0 , 3.0]
-sim.initial_data_direction= "ii"
+#sim.lin_m=  [-2,    2]
+#sim.l_ang=  [ 2,    2]
+#sim.amp_re= [ 2.0,  2.0]
+#sim.amp_im= [ 0.0,  0.0]
+#sim.rl_0=   [ 1.01, 1.01]
+#sim.ru_0=   [ 3.0 , 3.0]
+#sim.initial_data_direction= "ii"
 #=============================================================================
 ## second order modes to evolve
 
-sim.scd_m= [-4, 0, 4]
+sim.scd_m= [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7]
 #=============================================================================
 ## which m angular values to write to file
 
@@ -95,7 +95,7 @@ sim.write_scd_m= sim.scd_m
 #=============================================================================
 ## multiple of when can begin second order evolution 
 
-sim.integrate_psi4_start_multiple= float(6.0)
+sim.integrate_psi4_start_multiple= float(3.0)
 sim.scd_order_start_multiple= float(6.0)
 #=============================================================================
 if (sim.run_type == "basic_run"):
@@ -103,9 +103,9 @@ if (sim.run_type == "basic_run"):
 #=============================================================================
 elif (sim.run_type == "res_study"):
    all_res= [
-      [160,42],
-      [172,46],
-      [194,50]
+      [160,16],
+      [172,20],
+      [194,24]
    ]
   
    for i in range(len(all_res)):

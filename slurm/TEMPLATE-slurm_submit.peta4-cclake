@@ -15,6 +15,8 @@
 #SBATCH --mail-type=FAIL
 #SBATCH --no-requeue
 #SBATCH --ntasks=1
+#! Increase this safe value to no more than 56 (number of cores per node):
+#SBATCH --cpus-per-task=2
 
 #! We assume this is located in the directory we want to run
 cp $HOME/teuk-fortran/bin/default.run .
@@ -22,7 +24,7 @@ cp $HOME/teuk-fortran/bin/default.run .
 CMD="$HOME/teuk-fortran/bin/default.run $(pwd) | tee output"
 
 #! Increase this safe value to no more than 56 (number of cores per node):
-export OMP_NUM_THREADS=1
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 #! ############################################################
 #! do not change anything below this line 

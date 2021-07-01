@@ -2,5 +2,5 @@
 *.swp
 *.mod
 *.o
-*.slurm
+slurm_*
 plotting/*
